@@ -1,13 +1,9 @@
 import json
 from typing import List
-
 from telebot.types import Message, CallbackQuery
-
 from telebot import types, TeleBot
-
 from logic.bot_entity import InlineViewButton, ReplyViewButton
 from logic.bot_interface import IView
-
 from logic.service import BotService
 from config.text_config import TextBot
 
