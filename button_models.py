@@ -11,6 +11,8 @@ class Field(Enum):
 
 
 class MyButton(ABC):
+    name: str
+    data: str
 
     @abstractmethod
     def to_str(self) -> str: ...

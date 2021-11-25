@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 from button_models import StartButton, TimeButton
+from state import State
 
 
 class SendDataProvider:
@@ -33,5 +34,7 @@ class SendUserData:
         self.name_otch: Optional[str] = None
         self.birthday: Optional[str] = None
         self.number: Optional[str] = None
+        self.state: Optional[State] = State.start_first
+
     def __str__(self) -> str:
         return str(self.__dict__)

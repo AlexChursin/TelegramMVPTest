@@ -19,9 +19,9 @@ class TextBot(BaseModel):
     family_text: str
     name_otch_text: str
     birthdate_text: str
-    get_number: str
+    number_text: str
+    number_error_text: str
     finish: str
 
 
 
-text_config = TextBot(**json.load(open('bot_text_word.json', 'r', encoding='UTF-8')))
