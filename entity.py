@@ -15,23 +15,23 @@ class SendDataProvider:
         return None
 
     @staticmethod
-    def set_user_obj(user_id: int, from_user: int | None = None):
+    def set_user_obj(user_id: int, from_user: Optional[int] = None):
         SendDataProvider.user_data[user_id] = SendUserData(from_user)
         return None
 
 
 @dataclass
 class SendUserData:
-    def __init__(self, from_user: int | None = None):
+    def __init__(self, from_user: Optional[int] = None):
         self.from_user = from_user
         self.datetime_start = datetime.now()
         self.start_button: StartButton | None = None
         self.time_button: TimeButton | None = None
-        self.reason_petition: str | None = None
-        self.medications: str | None = None
-        self.family: str | None = None
-        self.name_otch: str | None = None
-        self.birthday: str | None = None
-        self.number: str | None = None
+        self.reason_petition: Optional[str] = None
+        self.medications: Optional[str] = None
+        self.family: Optional[str] = None
+        self.name_otch: Optional[str] = None
+        self.birthday: Optional[str] = None
+        self.number: Optional[str] = None
     def __str__(self) -> str:
         return str(self.__dict__)

@@ -1,4 +1,5 @@
 import json
+from typing import List
 
 from pydantic import BaseModel
 
@@ -11,7 +12,7 @@ class Button(BaseModel):
 class TextBot(BaseModel):
     start_text: str
     info_text: str
-    start_button_names: list[Button]
+    start_button_names: List[Button]
     cons_text: str
     reason_text: str
     medications_text: str

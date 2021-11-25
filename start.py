@@ -1,4 +1,6 @@
 import logging
+from typing import Optional
+
 import telebot
 import base64
 import api
@@ -13,7 +15,7 @@ KEY = '2109332410:AAFE3ADenKveU7w-zpP5pCYvJf2WwpC7sPc'
 bot = telebot.TeleBot(KEY)
 
 
-def get_refer(text) -> str | None:
+def get_refer(text) -> Optional[str]:
     if " " in text:
         try:
             ref_str = text.split()[1]
