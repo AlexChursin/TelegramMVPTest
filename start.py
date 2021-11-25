@@ -1,22 +1,15 @@
 import json
-import logging
-from enum import Enum
-from typing import Optional, List
-
-import base64
+from typing import List
 
 from telebot.types import Message, CallbackQuery
 
-import api
 from telebot import types, TeleBot
 
-from bot_entity import InlineViewButton, ReplyViewButton
-from bot_interface import IView
-from entity import SendDataProvider, SendDataProvider
-from urllib import parse
+from logic.bot_entity import InlineViewButton, ReplyViewButton
+from logic.bot_interface import IView
 
-from service import BotService
-from text_config import TextBot
+from logic.service import BotService
+from config.text_config import TextBot
 
 KEY = '2110497364:AAFR0osj2TGrLHbcTrxkN6CGDWBY1tVA9Ao'
 bot: TeleBot = TeleBot(KEY)
@@ -44,7 +37,7 @@ class TelegramView(IView):
 
 
 bot_service = BotService(view=TelegramView(),
-                         text_config=TextBot(**json.load(open('bot_text_word.json', 'r', encoding='UTF-8'))))
+                         text_config=TextBot(**json.load(open('config/bot_text_word.json', 'r', encoding='UTF-8'))))
 
 
 @bot.message_handler(commands=['start'])

@@ -4,10 +4,10 @@ from typing import Optional
 import api
 from bot_entity import InlineViewButton, ReplyViewButton
 from bot_interface import IView
-from button_models import StartButton, get_button_from_callback, TimeButton
-from entity import SendDataProvider
-from state import State
-from text_config import TextBot
+from button import StartButton, get_button_from_callback, TimeButton
+from client_data.entity import ClientDataProvider
+from user_state import State
+from config.text_config import TextBot
 from utils import is_number
 
 
@@ -20,7 +20,7 @@ class BotService:
         user_id = user_id
         from_user = get_refer(refer_url_text)
         text = self.text_config.start_text.format(str(from_user))
-        SendDataProvider.set_user_obj(user_id, from_user)
+        ClientDataProvider.set_user_obj(user_id, from_user)
         buttons = [InlineViewButton(text=button.name, callback=StartButton(name=button.name, data=button.data).to_str()) for
                    button in self.text_config.start_button_names]
         self.view.send_message(chat_id, text, inline_buttons=buttons)
@@ -30,7 +30,7 @@ class BotService:
         self.view.send_message(chat_id, text)
 
     def answer_callback(self, chat_id: int, user_id: int, callback_data: str):
-        user = SendDataProvider.get_user_obj(user_id)
+        user = ClientDataProvider.get_user_obj(user_id)
         button_object = get_button_from_callback(callback_data)
         if isinstance(button_object, StartButton):
             if user is not None:
@@ -46,7 +46,7 @@ class BotService:
                 user.state = State.await_reason_petition_text
 
     def answer_on_contacts(self, chat_id: int, user_id: int, phone_text: str):
-        user = SendDataProvider.get_user_obj(user_id)
+        user = ClientDataProvider.get_user_obj(user_id)
         if user is not None:
             user.number = phone_text
             send_text = self.text_config.finish.format(user.start_button.name.lower(), user.time_button.name.lower())
@@ -56,7 +56,7 @@ class BotService:
             user.state = State.finish
 
     def answer_on_any_message(self, chat_id, user_id, text):
-        user = SendDataProvider.get_user_obj(user_id)
+        user = ClientDataProvider.get_user_obj(user_id)
         if user is None:
             self.send_start_message(chat_id, user_id)
             return
