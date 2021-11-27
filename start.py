@@ -15,6 +15,12 @@ class TelegramView(IView):
     def __init__(self):
         self._bot: TeleBot = bot
 
+    def send_phone_request(self, chat_id: int, text: str):
+        markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+        markup.add(types.KeyboardButton(text='Отправить телефон', request_contact=True))
+
+        self._bot.send_message(chat_id, text=text, reply_markup=markup, parse_mode='HTML')
+
     def send_message(self, chat_id: int, text: str,
                      inline_buttons: List[InlineViewButton] = None,
                      reply_buttons: List[ReplyViewButton] = None):
@@ -24,10 +30,6 @@ class TelegramView(IView):
             for button in inline_buttons:
                 markup.add(types.InlineKeyboardButton(text=button.text, callback_data=button.callback, ))
 
-        if reply_buttons is not None:
-            markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-            for button in reply_buttons:
-                markup.add(types.KeyboardButton(text=button.text, request_contact=button.request_contact))
 
         self._bot.send_message(chat_id, text=text, reply_markup=markup, parse_mode='HTML')
 

@@ -2,7 +2,7 @@ import logging
 from typing import Optional
 
 import api
-from .bot_entity import InlineViewButton, ReplyViewButton
+from .bot_entity import InlineViewButton
 from .bot_interface import IView
 from .button import StartButton, get_button_from_callback, TimeButton
 from start_consultate_client_data.client_provider import ClientDataProvider
@@ -79,8 +79,7 @@ class BotService:
         elif user.state is State.await_birthday_text:
             user.reason_petition = text
             user.state = State.await_contacts
-            buttons = [ReplyViewButton(text="Отправить телефон", request_contact=True)]
-            self.view.send_message(chat_id, text=self.text_config.number_text, reply_buttons=buttons)
+            self.view.send_phone_request(chat_id, text=self.text_config.number_text)
         elif user.state is State.await_contacts:
             if not is_number(text):
                 self.view.send_message(chat_id, text=self.text_config.number_error_text)
