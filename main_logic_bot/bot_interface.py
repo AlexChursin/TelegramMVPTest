@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from bot_entity import ReplyViewButton, InlineViewButton
+from .bot_entity import ReplyViewButton, InlineViewButton
 
 
 class IView(ABC):

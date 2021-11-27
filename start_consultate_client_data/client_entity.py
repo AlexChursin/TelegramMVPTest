@@ -2,27 +2,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
-from logic.button import StartButton, TimeButton
-from logic.user_state import State
-
-
-class ClientDataProvider:
-    user_data = {}
-
-    @staticmethod
-    def get_user_obj(user_id: int) -> Optional['SendClientData']:
-        if user_id in ClientDataProvider.user_data:
-            return ClientDataProvider.user_data[user_id]
-        return None
-
-    @staticmethod
-    def set_user_obj(user_id: int, from_user: Optional[int] = None):
-        ClientDataProvider.user_data[user_id] = SendClientData(from_user)
-        return None
+from main_logic_bot.button import StartButton, TimeButton
+from main_logic_bot.user_bot_state import State
 
 
 @dataclass
-class SendClientData:
+class StartClientData:
     def __init__(self, from_user: Optional[int] = None):
         self.from_user = from_user
         self.datetime_start = datetime.now()

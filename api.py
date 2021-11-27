@@ -1,13 +1,13 @@
 from typing import List
 
-from client_data.entity import SendClientData
+from start_consultate_client_data.client_entity import StartClientData
 
 
 def add_refer(param, param1):
     return None
 
 
-def send_dialog(send_user: SendClientData):
+def send_dialog(send_user: StartClientData):
     return None
 
 

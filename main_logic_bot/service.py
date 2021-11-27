@@ -2,11 +2,11 @@ import logging
 from typing import Optional
 
 import api
-from bot_entity import InlineViewButton, ReplyViewButton
-from bot_interface import IView
-from button import StartButton, get_button_from_callback, TimeButton
-from client_data.entity import ClientDataProvider
-from user_state import State
+from .bot_entity import InlineViewButton, ReplyViewButton
+from .bot_interface import IView
+from .button import StartButton, get_button_from_callback, TimeButton
+from start_consultate_client_data.client_provider import ClientDataProvider
+from .user_bot_state import State
 from config.text_config import TextBot
 from utils import is_number
 
