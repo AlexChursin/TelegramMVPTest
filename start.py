@@ -2,7 +2,7 @@ import json
 from typing import List
 from telebot.types import Message, CallbackQuery
 from telebot import types, TeleBot
-from main_logic_bot.bot_entity import InlineViewButton, ReplyViewButton
+from main_logic_bot.bot_entity import InlineViewButton
 from main_logic_bot.bot_interface import IView
 from main_logic_bot.service import BotService
 from config.text_config import TextBot
@@ -22,8 +22,7 @@ class TelegramView(IView):
         self._bot.send_message(chat_id, text=text, reply_markup=markup, parse_mode='HTML')
 
     def send_message(self, chat_id: int, text: str,
-                     inline_buttons: List[InlineViewButton] = None,
-                     reply_buttons: List[ReplyViewButton] = None):
+                     inline_buttons: List[InlineViewButton] = None):
         markup = types.ReplyKeyboardRemove()
         if inline_buttons is not None:
             markup = types.InlineKeyboardMarkup()
