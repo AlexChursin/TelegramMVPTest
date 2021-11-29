@@ -1,4 +1,5 @@
 import json
+import os
 from typing import List, Optional
 from telebot.types import Message, CallbackQuery, ReplyKeyboardMarkup, InlineKeyboardMarkup
 from telebot import types, TeleBot
@@ -7,7 +8,7 @@ from main_logic_bot.bot_interface import IView
 from main_logic_bot.service import BotService
 from config.text_config import TextBot
 
-KEY = '2110497364:AAFR0osj2TGrLHbcTrxkN6CGDWBY1tVA9Ao'
+KEY = os.environ.get('TELEGRAM_TOKEN')
 bot: TeleBot = TeleBot(KEY)
 
 
