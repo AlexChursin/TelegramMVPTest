@@ -10,7 +10,7 @@ class State(Enum):
     await_name_otch_text = auto()
     await_birthday_text = auto()
     await_contacts = auto()
-    finish = auto()
+    dialog = auto()
 
     def __str__(self):
         return str(self.value)

@@ -17,7 +17,6 @@ class BotService:
         self.text_config: TextBot = text_config
 
     def send_start_message(self, chat_id: int, user_id: int, refer_url_text: str = ''):
-        user_id = user_id
         from_user = get_refer(refer_url_text)
         if from_user is None:
             user = ClientDataProvider.get_user_obj(user_id)
@@ -66,8 +65,12 @@ class BotService:
             send_text = self.text_config.finish.format(user.start_button.name.lower(), user.time_button.name.lower())
             self.view.send_message(chat_id, text=send_text)
             self.view.send_message(chat_id, text=f'Данные для отправки: \n {user}')  # для дебага
-            api.send_dialog(send_user=user)
-            user.state = State.finish
+            dialog_id = api.create_dialog(send_user=user)
+            if dialog_id is not None:
+                user.dialog_id = dialog_id
+                user.state = State.dialog
+            else:
+                pass  ######### нужно потом написать ответ если диалог не создался 29.11.21
 
     def answer_on_any_message(self, chat_id, user_id, text):
         user = ClientDataProvider.get_user_obj(user_id)
@@ -99,6 +102,11 @@ class BotService:
                 self.view.send_message(chat_id, text=self.text_config.number_error_text)
             else:
                 self.answer_on_contacts(chat_id, user_id, phone_text=text)
+        elif user.state is State.dialog:
+            if user.dialog_id is not None:
+                is_send = api.send_patient_text_message(text=text, dialog_id=user.dialog_id)
+                if not is_send:
+                    pass  ## нужно написать ответ бота если сообщение не отправлено 29.11.2021
 
 
 def get_refer(text) -> Optional[str]:

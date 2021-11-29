@@ -20,6 +20,6 @@ class StartClientData:
         self.birthday: Optional[str] = None
         self.number: Optional[str] = None
         self.state: Optional[State] = State.start_first
-
+        self.dialog_id: Optional[int] = None
     def __str__(self) -> str:
         return str(self.__dict__)

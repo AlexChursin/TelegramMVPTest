@@ -1,6 +1,9 @@
 import json
 import os
+import threading
 from typing import List, Optional
+
+from pip import __main__
 from telebot.types import Message, CallbackQuery, ReplyKeyboardMarkup, InlineKeyboardMarkup
 from telebot import types, TeleBot
 from main_logic_bot.bot_entity import InlineViewButton
@@ -89,4 +92,9 @@ def start_telegram_bot():
     bot.polling(True)
 
 
-start_telegram_bot()
+def start_telegram_bot_in_new_thread():
+    threading.Thread(target=start_telegram_bot).start()
+
+
+if __name__ == "__main__":
+    start_telegram_bot_in_new_thread()
