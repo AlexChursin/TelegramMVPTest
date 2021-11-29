@@ -1,6 +1,6 @@
 import json
-from typing import List
-from telebot.types import Message, CallbackQuery
+from typing import List, Optional
+from telebot.types import Message, CallbackQuery, ReplyKeyboardMarkup, InlineKeyboardMarkup
 from telebot import types, TeleBot
 from main_logic_bot.bot_entity import InlineViewButton
 from main_logic_bot.bot_interface import IView
@@ -12,8 +12,31 @@ bot: TeleBot = TeleBot(KEY)
 
 
 class TelegramView(IView):
+
     def __init__(self):
         self._bot: TeleBot = bot
+
+    @staticmethod
+    def __get_markup(inline_buttons: List[InlineViewButton]) -> InlineKeyboardMarkup:
+        markup = types.ReplyKeyboardRemove()
+        if inline_buttons is not None:
+            markup = types.InlineKeyboardMarkup(row_width=1)
+            for button in inline_buttons:
+                markup.add(types.InlineKeyboardButton(text=button.text, callback_data=button.callback, ))
+        return markup
+
+    def edit_bot_message(self, chat_id: int, text: str, message_id: int, inline_buttons: List[InlineViewButton] = None):
+        # bot.edit_message_text(chat_id=chat_id,
+        #                       text='text',
+        #                       message_id=message.message_id,
+        #                       reply_markup=None,
+        #                       parse_mode='HTML')
+        markup = self.__get_markup(inline_buttons)
+        self._bot.edit_message_text(chat_id=chat_id,
+                                    text=text,
+                                    message_id=message_id,
+                                    reply_markup=markup,
+                                    parse_mode='HTML')
 
     def send_phone_request(self, chat_id: int, text: str):
         markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
@@ -23,13 +46,7 @@ class TelegramView(IView):
 
     def send_message(self, chat_id: int, text: str,
                      inline_buttons: List[InlineViewButton] = None):
-        markup = types.ReplyKeyboardRemove()
-        if inline_buttons is not None:
-            markup = types.InlineKeyboardMarkup()
-            for button in inline_buttons:
-                markup.add(types.InlineKeyboardButton(text=button.text, callback_data=button.callback, ))
-
-
+        markup = self.__get_markup(inline_buttons)
         self._bot.send_message(chat_id, text=text, reply_markup=markup, parse_mode='HTML')
 
 

@@ -19,6 +19,20 @@ class BotService:
     def send_start_message(self, chat_id: int, user_id: int, refer_url_text: str = ''):
         user_id = user_id
         from_user = get_refer(refer_url_text)
+        if from_user is None:
+            user = ClientDataProvider.get_user_obj(user_id)
+            is_none = False
+            if user is None:
+                is_none = True
+            else:
+                if user.from_user is None:
+                    is_none = True
+            if is_none:
+                self.view.send_message(chat_id, 'Зайдите пожалуйста по реферальной ссылке врача')
+                return
+            else:
+                from_user = user.from_user
+
         text = self.text_config.start_text.format(str(from_user))
         ClientDataProvider.set_user_obj(user_id, from_user)
         buttons = [InlineViewButton(text=button.name, callback=StartButton(name=button.name, data=button.data).to_str()) for
