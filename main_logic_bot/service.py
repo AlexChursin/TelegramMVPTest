@@ -5,7 +5,7 @@ import api
 from .bot_entity import InlineViewButton
 from .bot_interface import IView
 from .button import StartButton, get_button_from_callback, TimeButton
-from start_consultate_client_data.client_provider import ClientDataProvider
+from consultate_client_data.client_provider import ClientDataProvider
 from .user_bot_state import State
 from config.text_config import TextBot
 from utils import is_number

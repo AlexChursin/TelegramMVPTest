@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from start_consultate_client_data.client_entity import StartClientData
+from consultate_client_data.client_entity import StartClientData
 
 
 def add_refer(param, param1):
