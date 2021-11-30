@@ -1,0 +1,17 @@
+[Unit]
+Description=Doc-Crm TG Bot
+
+
+[Service]
+Type=notify
+TimeoutSec=0
+ExecStart=/usr/bin/python3 /opt/TelegramMVPTest/start.py
+WorkingDirectory=/opt/TelegramMVPTest/
+Environment=PYTHONUNBUFFERED=1
+Restart=on-failure
+User=achursin
+SyslogIdentifier=msassistant-bot
+
+
+[Install]
+WantedBy=multi-user.target
