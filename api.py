@@ -3,8 +3,11 @@ from typing import List, Optional
 from consultate_client_data.client_entity import StartClientData
 
 
-def add_refer(param, param1):
-    return None
+def get_user_from_refer(value: str = None):
+    if value is not None:
+        return "Елены Петровой"
+    else:
+        return None
 
 
 def create_dialog(send_user: StartClientData) -> Optional[int]:
@@ -20,5 +23,4 @@ def get_list_free_times() -> List[str]:
 
 
 def send_patient_text_message(text:str, dialog_id: int):
-
-    return None
+    return True

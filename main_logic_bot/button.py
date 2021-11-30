@@ -8,6 +8,7 @@ separator = '~!'
 class ButtonTypes(Enum):
     start_button = 'start_button'
     time_button = 'time_button'
+    back_main = 'back_main'
 
 
 class MyButton(ABC):
@@ -25,6 +26,8 @@ def get_button_from_callback(data: str) -> MyButton:
         return StartButton.get_from_callback(spl[1:])
     if ButtonTypes(key) is ButtonTypes.time_button:
         return TimeButton.get_from_callback(spl[1:])
+    if ButtonTypes(key) is ButtonTypes.back_main:
+        return BackMainButton.get_from_callback(spl[1:])
 
 
 def get_callback(button_type: ButtonTypes, button: MyButton) -> str:
@@ -58,6 +61,20 @@ class TimeButton(MyButton):
     @staticmethod
     def get_from_callback(list_arg: list) -> 'TimeButton':
         return TimeButton(*list_arg)
+
+
+@dataclass
+class BackMainButton(MyButton):
+    name: str
+    data: str
+
+    def to_str(self) -> str:
+        res = get_callback(ButtonTypes.back_main, self)
+        return res
+
+    @staticmethod
+    def get_from_callback(list_arg: list) -> 'BackMainButton':
+        return BackMainButton(*list_arg)
 
 
 
