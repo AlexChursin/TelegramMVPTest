@@ -17,7 +17,7 @@ class StartClientData:
         self.medications: Optional[str] = None
         self.family: Optional[str] = None
         self.name_otch: Optional[str] = None
-        self.birthday: Optional[datetime] = None
+        self.birthday: Optional[str] = None
         self.number: Optional[str] = None
         self.state: Optional[State] = State.start_first
         self.dialog_id: Optional[int] = None
