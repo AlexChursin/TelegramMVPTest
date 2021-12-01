@@ -102,14 +102,14 @@ class BotService:
             self.view.send_message(chat_id, text=self.text_config.medications_text)
         elif user.state is State.await_medication_text:
             user.medications = text
-            user.state = State.await_family_text
-            self.view.send_message(chat_id, text=self.text_config.family_text)
-        elif user.state is State.await_family_text:
-            user.family = text
             user.state = State.await_name_otch_text
-            self.view.send_message(chat_id, text=self.text_config.name_otch_text)
+            self.view.send_message(chat_id, text=self.text_config.family_text)
+       # elif user.state is State.await_family_text:
+       #     user.family = text
+       #     user.state = State.await_name_otch_text
+       #     self.view.send_message(chat_id, text=self.text_config.name_otch_text)
         elif user.state is State.await_name_otch_text:
-            user.reason_petition = text
+            user.name_otch = text
             user.state = State.await_birthday_text
             self.view.send_message(chat_id, text=self.text_config.birthdate_text)
         elif user.state is State.await_birthday_text:
