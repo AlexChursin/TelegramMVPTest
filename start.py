@@ -6,11 +6,11 @@ from aiogram.utils import executor
 
 from bot_init import bot, dp
 from main_logic_bot.service import BotService
-from config.text_config import TextBot
+from telegram.config.text_config import TextBot
 from telegram_view import tg_view
 
 bot_service = BotService(view=tg_view,
-                         text_config=TextBot(**json.load(open('config/bot_text_word.json', 'r', encoding='UTF-8'))))
+                         text_config=TextBot(**json.load(open('telegram/config/bot_text_word.json', 'r', encoding='UTF-8'))))
 
 
 @dp.message_handler(commands=['start'])

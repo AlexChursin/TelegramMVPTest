@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime
 from typing import Optional
 
 import api
@@ -8,7 +7,7 @@ from .bot_interface import IView
 from .button import StartButton, get_button_from_callback, TimeButton, BackMainButton
 from consultate_client_data.client_provider import ClientDataProvider
 from .user_bot_state import State
-from config.text_config import TextBot
+from telegram.config.text_config import TextBot
 from utils import is_number, get_birthday
 
 
@@ -104,10 +103,6 @@ class BotService:
             user.medications = text
             user.state = State.await_name_otch_text
             await self.view.send_message(chat_id, text=self.text_config.name_otch_text)
-       # elif user.state is State.await_family_text:
-       #     user.family = text
-       #     user.state = State.await_name_otch_text
-       #     self.view.send_message(chat_id, text=self.text_config.name_otch_text)
         elif user.state is State.await_name_otch_text:
             user.name_otch = text
             user.state = State.await_birthday_text

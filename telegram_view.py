@@ -6,7 +6,7 @@ from bot_init import bot
 from main_logic_bot.bot_entity import InlineViewButton
 from main_logic_bot.bot_interface import IView
 
-from typing import List, Optional
+from typing import List
 
 
 class TelegramView(IView):
