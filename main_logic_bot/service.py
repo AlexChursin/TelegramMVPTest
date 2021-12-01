@@ -94,7 +94,7 @@ class BotService:
     async def answer_on_any_message(self, chat_id, user_id, text):
         user = ClientDataProvider.get_user_obj(user_id)
         if user is None:
-            self.send_start_message(chat_id, user_id)
+            await self.send_start_message(chat_id, user_id)
             return
         if user.state is State.await_reason_petition_text:
             user.reason_petition = text
@@ -102,14 +102,14 @@ class BotService:
             await self.view.send_message(chat_id, text=self.text_config.medications_text)
         elif user.state is State.await_medication_text:
             user.medications = text
-            user.state = State.await_family_text
-            await self.view.send_message(chat_id, text=self.text_config.family_text)
-        elif user.state is State.await_family_text:
-            user.family = text
             user.state = State.await_name_otch_text
             await self.view.send_message(chat_id, text=self.text_config.name_otch_text)
+       # elif user.state is State.await_family_text:
+       #     user.family = text
+       #     user.state = State.await_name_otch_text
+       #     self.view.send_message(chat_id, text=self.text_config.name_otch_text)
         elif user.state is State.await_name_otch_text:
-            user.reason_petition = text
+            user.name_otch = text
             user.state = State.await_birthday_text
             await self.view.send_message(chat_id, text=self.text_config.birthdate_text)
         elif user.state is State.await_birthday_text:
@@ -123,7 +123,7 @@ class BotService:
         elif user.state is State.await_contacts:
             if is_number(text):
                 user.state = State.dialog
-                self.answer_on_contacts(chat_id, user_id, phone_text=text)
+                await self.answer_on_contacts(chat_id, user_id, phone_text=text)
             else:
                 await self.view.send_message(chat_id, text=self.text_config.number_error_text)
         elif user.state is State.dialog:
