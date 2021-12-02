@@ -44,4 +44,4 @@ async def read_item(cons_id: int, filename: str, body: bytes = File(...)):
     return {"chat_id": chat_id, "len": len(body)}
 
 
-uvicorn.run(app, host="0.0.0.0", port=8000)
+uvicorn.run(app=app, host="0.0.0.0", port=8000)

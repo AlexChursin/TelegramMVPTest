@@ -1,28 +1,36 @@
-from typing import List
-
+from dataclasses import dataclass
 from pydantic import BaseModel
 
 
 class Button(BaseModel):
-    name: str
-    data: str
+    label: str
+    key: str
+
+
+class Texts(BaseModel):
+    start: str
+    info: str
+    set_cons_time: str
+    cons: str
+    user_reason: str
+    reason: str
+    medications: str
+    family: str
+    name_otch: str
+    birthdate: str
+    birthdate_error: str
+    number: str
+    number_error: str
+    finish: str
+    finish_emb: str
+
+
+class Buttons(BaseModel):
+    start_button_now: Button
+    start_button_tomorrow: Button
+    start_button_emergency: Button
 
 
 class TextBot(BaseModel):
-    start_text: str
-    info_text: str
-    start_button_names: List[Button]
-    set_cons_time_text: str
-    cons_text: str
-    reason_text: str
-    medications_text: str
-    family_text: str
-    name_otch_text: str
-    birthdate_text: str
-    birthdate_error_text: str
-    number_text: str
-    number_error_text: str
-    finish: str
-
-
-
+    texts: Texts
+    buttons: Buttons

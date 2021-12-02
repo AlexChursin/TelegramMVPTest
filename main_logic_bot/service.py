@@ -2,12 +2,14 @@ import logging
 from typing import Optional
 
 import api
+from telegram.config.text_config import TextBot
 from .bot_entity import InlineViewButton
 from .bot_interface import IView
-from .button import StartButton, get_button_from_callback, TimeButton, BackMainButton
+from .button import ButtonCollection, MyButton
 from consultate_client_data.client_provider import ClientDataProvider
+from .steps.hello import get_hello_keyboard
 from .user_bot_state import State
-from telegram.config.text_config import TextBot
+
 from utils import is_number, get_birthday
 
 
@@ -19,8 +21,8 @@ class BotService:
     async def send_start_message(self, chat_id: int, user_id: int, refer_url_text: str = ''):
         refer_value = get_refer(refer_url_text)
         from_user = api.get_user_from_refer(refer_value)
+        user = ClientDataProvider.get_user_obj(user_id)
         if from_user is None:
-            user = ClientDataProvider.get_user_obj(user_id)
             is_none = False
             if user is None:
                 is_none = True
@@ -33,94 +35,123 @@ class BotService:
             else:
                 from_user = user.from_user
 
-        text = self.text_config.start_text.format(str(from_user))
-        ClientDataProvider.set_user_obj(user_id, from_user)
-        buttons = [InlineViewButton(text=button.name, callback=StartButton(name=button.name, data=button.data).to_str())
-                   for
-                   button in self.text_config.start_button_names]
+        text = self.text_config.texts.start.format(str(from_user))
+        if user is None:
+            ClientDataProvider.set_user_obj(user_id, from_user)
+        buttons = get_hello_keyboard(self.text_config)
         await self.view.send_message(chat_id, text, inline_buttons=buttons)
 
     async def send_info(self, chat_id):
-        text = self.text_config.info_text
+        text = self.text_config.texts.info
         await self.view.send_message(chat_id, text)
 
     async def answer_callback(self, chat_id: int, bot_message_id: int, user_id: int, callback_data: str):
         user = ClientDataProvider.get_user_obj(user_id)
-        button_object = get_button_from_callback(callback_data)
-        if isinstance(button_object, StartButton):
+        button_object = ButtonCollection.from_callback(callback_data)
+        if button_object.type is ButtonCollection.start_button:
             if user is not None:
-                user.start_button = button_object
+                user.day_value = button_object.label.lower()
                 list_ = api.get_list_free_times()
-                buttons = [InlineViewButton(text=value, callback=TimeButton(name=value, data=value).to_str()) for value
-                           in
-                           list_]
+                buttons = [InlineViewButton(text=value,
+                                            callback=MyButton(value, value,
+                                                              ButtonCollection.time_button.value).to_callback()) for
+                           value in list_]
                 await self.view.edit_bot_message(chat_id,
-                                           text=self.text_config.set_cons_time_text.format(user.start_button.name.lower()),
-                                           inline_buttons=buttons,
-                                           message_id=bot_message_id)
-        if isinstance(button_object, TimeButton):
+                                                 text=self.text_config.texts.set_cons_time.format(user.day_value),
+                                                 inline_buttons=buttons,
+                                                 message_id=bot_message_id)
+        if button_object.type is ButtonCollection.time_button:
             if user is not None:
-                user.time_button = button_object
-                buttons = [InlineViewButton(text="Изменить время консультации", callback=BackMainButton(name='Back', data="Back").to_str())]
-                await self.view.edit_bot_message(user_id, text=self.text_config.cons_text
-                                           .format(user.start_button.name.lower(),
-                                                   user.time_button.name.lower()),
-                                           inline_buttons=buttons,
-                                           message_id=bot_message_id)
-                await self.view.send_message(chat_id, self.text_config.reason_text)
-                user.state = State.await_reason_petition_text
+                user.time_value = button_object.label.lower()
+                callback_back_b = MyButton('back', 'back', type_value=ButtonCollection.back_main.value).to_callback()
+                buttons = [InlineViewButton(text="Изменить время консультации", callback=callback_back_b)]
+                text = self.text_config.texts.cons.format(user.day_value, user.time_value)
+                await self.view.edit_bot_message(user_id, text=text, inline_buttons=buttons, message_id=bot_message_id)
+                await self.view.send_phone_request(chat_id, self.text_config.texts.number)
+                user.is_emergency = False
+                user.state = State.await_contacts
 
-        if isinstance(button_object, BackMainButton):
+        if button_object.type is ButtonCollection.start_emergency_button:
+            if user is not None:
+                user.is_emergency = True
+                user.day_value = None
+                user.time_value = None
+                await self.view.send_phone_request(chat_id, self.text_config.texts.number)
+                user.state = State.await_contacts
+
+
+        if button_object.type is ButtonCollection.back_main:
             if user is not None:
                 await self.view.delete_message(chat_id, bot_message_id)
-                await self.view.delete_message(chat_id, bot_message_id+1)
+                await self.view.delete_message(chat_id, bot_message_id + 1)
                 await self.send_start_message(chat_id, user_id)
 
     async def answer_on_contacts(self, chat_id: int, user_id: int, phone_text: str):
         user = ClientDataProvider.get_user_obj(user_id)
         if user is not None:
             user.number = phone_text
-            send_text = self.text_config.finish.format(user.start_button.name.lower(), user.time_button.name.lower())
-            await self.view.send_message(chat_id, text=send_text, close_markup=True)
-         #   self.view.send_message(chat_id, text=f'Данные для отправки: \n {user}')  # для дебага
-            dialog_id = api.create_dialog(send_user=user)
-            if dialog_id is not None:
-                user.dialog_id = dialog_id
-                user.state = State.dialog
+            if user.cons_finish:
+                await self.view.send_message(chat_id, self.text_config.texts.user_reason.format(user.name_otch),close_markup=True)
             else:
-                pass  ######### нужно потом написать ответ если диалог не создался 29.11.21
+                await self.view.send_message(chat_id, self.text_config.texts.reason, close_markup=True)
+            user.state = State.await_reason_petition_text
+
+    def finish(self, user):
+        dialog_id = api.create_dialog(send_user=user)
+        user.cons_finish = True
+        if dialog_id is not None:
+            user.dialog_id = dialog_id
+            user.state = State.dialog
+        else:
+            pass  ######### нужно потом написать ответ если диалог не создался 29.11.21
 
     async def answer_on_any_message(self, chat_id, user_id, text):
         user = ClientDataProvider.get_user_obj(user_id)
         if user is None:
             await self.send_start_message(chat_id, user_id)
             return
-        if user.state is State.await_reason_petition_text:
-            user.reason_petition = text
-            user.state = State.await_medication_text
-            await self.view.send_message(chat_id, text=self.text_config.medications_text)
-        elif user.state is State.await_medication_text:
-            user.medications = text
-            user.state = State.await_name_otch_text
-            await self.view.send_message(chat_id, text=self.text_config.name_otch_text)
-        elif user.state is State.await_name_otch_text:
-            user.name_otch = text
-            user.state = State.await_birthday_text
-            await self.view.send_message(chat_id, text=self.text_config.birthdate_text)
-        elif user.state is State.await_birthday_text:
-            birthday = get_birthday(text)
-            if birthday:
-                user.birthday = birthday
-                user.state = State.await_contacts
-                await self.view.send_phone_request(chat_id, text=self.text_config.number_text)
-            else:
-                await self.view.send_message(chat_id, text=self.text_config.birthdate_error_text)
-        elif user.state is State.await_contacts:
+        if user.state is State.await_contacts:
             if is_number(text):
                 user.state = State.dialog
                 await self.answer_on_contacts(chat_id, user_id, phone_text=text)
             else:
-                await self.view.send_message(chat_id, text=self.text_config.number_error_text)
+                await self.view.send_message(chat_id, text=self.text_config.texts.number_error)
+        elif user.state is State.await_reason_petition_text:
+            user.reason_petition = text
+            user.state = State.await_medication_text
+            await self.view.send_message(chat_id, text=self.text_config.texts.medications)
+        elif user.state is State.await_medication_text:
+            user.medications = text
+            if user.cons_finish:
+                if user.is_emergency:
+                    send_text = self.text_config.texts.finish_emb
+                else:
+                    send_text = self.text_config.texts.finish.format(user.day_value.lower(),
+                                                                     user.time_value.lower())
+                await self.view.send_message(chat_id, text=send_text)
+                self.finish(user)
+            else:
+                await self.view.send_message(chat_id, text=self.text_config.texts.name_otch)
+                user.state = State.await_name_otch_text
+
+        elif user.state is State.await_name_otch_text:
+            user.name_otch = text
+            user.state = State.await_birthday_text
+            await self.view.send_message(chat_id, text=self.text_config.texts.birthdate)
+        elif user.state is State.await_birthday_text:
+            birthday = get_birthday(text)
+            if birthday:
+                user.birthday = birthday
+                if not user.is_emergency:
+                    send_text = self.text_config.texts.finish.format(user.day_value.lower(),
+                                                                     user.time_value.lower())
+                else:
+                    send_text = self.text_config.texts.finish_emb
+                await self.view.send_message(chat_id, text=send_text)
+                self.finish(user)
+            else:
+                await self.view.send_message(chat_id, text=self.text_config.texts.birthdate_error)
+
         elif user.state is State.dialog:
             if user.dialog_id is not None:
                 is_send = api.send_patient_text_message(text=text, dialog_id=user.dialog_id)

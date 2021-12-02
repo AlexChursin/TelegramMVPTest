@@ -5,4 +5,3 @@ from dataclasses import dataclass
 class InlineViewButton:
     callback: str
     text: str
-

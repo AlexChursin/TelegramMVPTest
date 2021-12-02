@@ -1,80 +1,34 @@
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from enum import Enum, auto
 
-separator = '~!'
+separator = '~'
 
 
-class ButtonTypes(Enum):
-    start_button = 'start_button'
-    time_button = 'time_button'
-    back_main = 'back_main'
+class AutoName(Enum):
+    def _generate_next_value_(self, start, count, last_values):
+        return self
 
 
-class MyButton(ABC):
-    name: str
-    data: str
-
-    @abstractmethod
-    def to_str(self) -> str: ...
-
-
-def get_button_from_callback(data: str) -> MyButton:
-    spl = data.split(separator)
-    key = spl[0]
-    if ButtonTypes(key) is ButtonTypes.start_button:
-        return StartButton.get_from_callback(spl[1:])
-    if ButtonTypes(key) is ButtonTypes.time_button:
-        return TimeButton.get_from_callback(spl[1:])
-    if ButtonTypes(key) is ButtonTypes.back_main:
-        return BackMainButton.get_from_callback(spl[1:])
-
-
-def get_callback(button_type: ButtonTypes, button: MyButton) -> str:
-    v = [d for d in button.__dict__.values()]
-    return separator.join([button_type.value] + v)
-
-
-@dataclass
-class StartButton(MyButton):
-    name: str
-    data: str
-
-    def to_str(self) -> str:
-        res = get_callback(ButtonTypes.start_button, self)
-        return res
+class ButtonCollection(AutoName):
+    start_button = auto()
+    start_emergency_button = auto()
+    time_button = auto()
+    back_main = auto()
 
     @staticmethod
-    def get_from_callback(list_arg: list) -> 'StartButton':
-        return StartButton(*list_arg)
+    def from_callback(data: str) -> 'MyButton':
+        return MyButton(*data.split(separator))
 
 
-@dataclass
-class TimeButton(MyButton):
-    name: str
-    data: str
+class MyButton:
+    def __init__(self, label: str, data: str, type_value: str):
+        self.label: str = label
+        self.data: str = data
+        self.__type_value: str = type_value
 
-    def to_str(self) -> str:
-        res = get_callback(ButtonTypes.time_button, self)
+    @property
+    def type(self):
+        return ButtonCollection(self.__type_value)
+
+    def to_callback(self) -> str:
+        res = separator.join([d for d in self.__dict__.values()])
         return res
-
-    @staticmethod
-    def get_from_callback(list_arg: list) -> 'TimeButton':
-        return TimeButton(*list_arg)
-
-
-@dataclass
-class BackMainButton(MyButton):
-    name: str
-    data: str
-
-    def to_str(self) -> str:
-        res = get_callback(ButtonTypes.back_main, self)
-        return res
-
-    @staticmethod
-    def get_from_callback(list_arg: list) -> 'BackMainButton':
-        return BackMainButton(*list_arg)
-
-
-
