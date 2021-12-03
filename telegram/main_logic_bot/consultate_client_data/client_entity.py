@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
-from main_logic_bot.user_bot_state import State
+from .user_bot_state import State
 
 
 @dataclass

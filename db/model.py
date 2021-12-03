@@ -1,13 +1,14 @@
 import sqlalchemy
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, func
 
-from .core import metadata, Base
+from .core import Base, metadata
 
-
-class User(Base):
-    __tablename__ = "bot_users"
-
-    id = Column(Integer, primary_key=True, index=True)
-    cons_id = Column(String, unique=True)
-    chat_id = Column(String, index=True)
-    datetime = Column(DateTime, )
+DBUsers = sqlalchemy.Table(
+    "bot_users",
+    metadata,
+    Column('id', Integer, primary_key=True, index=True),
+    Column('cons_id', String, unique=True),
+    Column('chat_id', String, index=True),
+    Column('created', DateTime, server_default=func.now()),
+    Column('updated', DateTime, onupdate=func.now())
+)

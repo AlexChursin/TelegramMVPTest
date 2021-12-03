@@ -2,15 +2,15 @@ import logging
 from typing import Optional
 
 import api
-from telegram.config.text_config import TextBot
 from .bot_entity import InlineViewButton
 from .bot_interface import IView
 from .button import ButtonCollection, MyButton
-from consultate_client_data.client_provider import ClientDataProvider
+from .config.text_config import TextBot
+from .consultate_client_data.client_provider import ClientDataProvider
 from .steps.hello import get_hello_keyboard
-from .user_bot_state import State
+from .consultate_client_data.user_bot_state import State
 
-from utils import is_number, get_birthday
+from ..utils import is_number, get_birthday
 
 
 class BotService:

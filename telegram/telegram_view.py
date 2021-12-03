@@ -2,9 +2,9 @@ from aiogram import Bot, types
 from aiogram.types import InlineKeyboardMarkup
 
 
-from bot_init import bot
-from main_logic_bot.bot_entity import InlineViewButton
-from main_logic_bot.bot_interface import IView
+from .bot_init import bot
+from .main_logic_bot.bot_entity import InlineViewButton
+from .main_logic_bot.bot_interface import IView
 
 from typing import List
 
@@ -48,6 +48,7 @@ class TelegramView(IView):
     async def send_message(self, chat_id: int, text: str,
                            inline_buttons: List[InlineViewButton] = None,
                            close_markup: bool = False):
+        print(chat_id)
         markup = self.__get_markup(inline_buttons, close_markup)
         await self._bot.send_message(chat_id, text=text, reply_markup=markup, parse_mode='HTML')
 

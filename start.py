@@ -1,57 +1,67 @@
-import json
-import threading
+from typing import Optional
 
-from aiogram.types import Message, CallbackQuery
-from aiogram.utils import executor
+from loguru import logger
+from aiogram.types import Update
+from fastapi import FastAPI, File
+from pydantic import BaseModel
 
-from bot_init import bot, dp
-from main_logic_bot.service import BotService
-from telegram.config.text_config import TextBot
-from telegram_view import tg_view
+from telegram.bot_controller import bot, dp
+from db.core import database, engine, metadata
+from route.service import get_chat_id, create_cons
+from telegram.bot_init import KEY
+from telegram.telegram_view import tg_view
 
-bot_service = BotService(view=tg_view,
-                         text_config=TextBot(**json.load(open('telegram/config/bot_text_word.json', 'r', encoding='UTF-8'))))
-
-
-@dp.message_handler(commands=['start'])
-async def on_start_command(message: Message):
-    await bot_service.send_start_message(chat_id=message.chat.id, user_id=message.from_user.id,
-                                         refer_url_text=message.text)
+app = FastAPI()
+WEBHOOK_PATH = f"/bot/{KEY}"
+WEBHOOK_URL = 'https://f02f-194-8-47-113.ngrok.io' + WEBHOOK_PATH
 
 
-@dp.message_handler(commands=['info'])
-async def info_message(message):
-    await bot_service.send_info(chat_id=message.chat.id)
+@app.on_event("startup")
+async def startup():
+    webhook_info = await bot.get_webhook_info()
+    if webhook_info.url != WEBHOOK_URL:
+        await bot.set_webhook(
+            url=WEBHOOK_URL
+        )
+    logger.info(f'telegram webhook url: {webhook_info.url}')
+
+    metadata.create_all(engine)
+    await database.connect()
 
 
-@dp.message_handler()
-async def text_message(message: Message):
-    await bot_service.answer_on_any_message(chat_id=message.chat.id, user_id=message.from_user.id, text=message.text)
+@app.on_event("shutdown")
+async def shutdown():
+    await database.disconnect()
 
 
-@dp.callback_query_handler()
-async def inline(call: CallbackQuery):
-    await bot_service.answer_callback(chat_id=call.message.chat.id,
-                                      bot_message_id=call.message.message_id,
-                                      user_id=call.from_user.id, callback_data=call.data)
-    await bot.answer_callback_query(call.id, text='')
+class Message(BaseModel):
+    text: str
+    price: float
+    is_offer: Optional[bool] = None
 
 
-@dp.message_handler(content_types=['contact'])
-async def contact(message: Message):
-    if message.contact is not None:
-        await bot_service.answer_on_contacts(message.chat.id, message.from_user.id, message.contact.phone_number)
-    else:
-        pass
+@app.post(WEBHOOK_PATH)
+async def bot_webhook(update: dict):
+    tg_update = Update(**update)
+    await dp.process_update(tg_update)
 
 
-def start_telegram_bot():
-    executor.start_polling(dp, skip_updates=True)
+@app.post("/send/text_message")
+async def text(cons_id: int, text: str):
+    chat_id = get_chat_id(cons_id)
+    await tg_view.send_message(chat_id, text)
+    return {"chat_id": chat_id, "text": text}
 
 
-def start_telegram_bot_in_new_thread():
-    threading.Thread(target=start_telegram_bot).start()
+@app.post("/command/text_message", tags=['COM'])
+async def create(cons_id: int, chat_id: int):
+    id_ = await create_cons(chat_id, cons_id)
+    await tg_view.send_message(chat_id, 'создана запись с консультацией')
+    return {"id": id_, }
 
 
-if __name__ == "__main__":
-    start_telegram_bot()
+@app.post("/send/file_message")
+async def file(cons_id: int, filename: str, body: bytes = File(...)):
+    chat_id = get_chat_id(cons_id=cons_id)
+    await tg_view.send_file(chat_id, data=body, filename=filename)
+    return {"chat_id": chat_id, "len": len(body)}

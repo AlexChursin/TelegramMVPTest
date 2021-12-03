@@ -8,6 +8,7 @@ pattern = re.compile(r'((?:\+\d{2}[-\.\s]??|\d{4}[-\.\s]??)?(?:\d{3}[-\.\s]??\d{
 def is_number(text: str) -> bool:
     return pattern.match(text) is not None
 
+
 def get_birthday(text: str) -> Optional[str]:
     try:
         int_v = int(text)
