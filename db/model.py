@@ -1,14 +1,18 @@
-import sqlalchemy
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, func
+from datetime import datetime
 
-from .core import Base, metadata
+from .core import Base, metadata, database
+import ormar
 
-DBUsers = sqlalchemy.Table(
-    "bot_users",
-    metadata,
-    Column('id', Integer, primary_key=True, index=True),
-    Column('cons_id', String, unique=True),
-    Column('chat_id', String, index=True),
-    Column('created', DateTime, server_default=func.now()),
-    Column('updated', DateTime, onupdate=func.now())
-)
+
+class UserDB(ormar.Model):
+    class Meta:
+        tablename = "bot_users"
+        metadata = metadata
+        database = database
+
+    id: int = ormar.Integer(primary_key=True)
+    chat_id: int = ormar.Integer(minimum=0)
+    cons_id: int = ormar.Integer(minimum=0, unique=True)
+    created: datetime = ormar.DateTime(default=datetime.now)
+
+

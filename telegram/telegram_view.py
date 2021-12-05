@@ -1,6 +1,5 @@
 from aiogram import Bot, types
-from aiogram.types import InlineKeyboardMarkup
-
+from aiogram.types import InlineKeyboardMarkup, InputFile
 
 from .bot_init import bot
 from .main_logic_bot.bot_entity import InlineViewButton
@@ -11,11 +10,15 @@ from typing import List
 
 class TelegramView(IView):
 
+    async def send_message_doctor(self, chat_id: int, text: str, doctor_name: str):
+        text = f"<b>{doctor_name}</b>\n{text}"
+        await self._bot.send_message(chat_id, text=text, parse_mode='HTML')
+
     def __init__(self, bot_: Bot):
         self._bot: Bot = bot_
 
-    async def send_file(self, chat_id: int, data: bytes, filename: str):
-        await self._bot.send_document(chat_id, data, caption=filename)
+    async def send_file_from_doctor(self, chat_id: int, data: bytes, filename: str, doctor_name: str):
+        await self._bot.send_document(chat_id, InputFile(str(data)), caption=filename)
 
     async def delete_message(self, chat_id: int, message_id: int):
         await self._bot.delete_message(chat_id, message_id=message_id)
