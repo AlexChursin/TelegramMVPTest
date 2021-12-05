@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 
+import uvicorn
 from loguru import logger
 from aiogram.types import Update
 from fastapi import FastAPI, File
@@ -66,3 +67,6 @@ async def file(cons_id: int, filename: str, body: bytes = File(...)):
     chat_id = get_chat_id(cons_id=cons_id)
     await tg_view.send_file(chat_id, data=body, filename=filename)
     return {"chat_id": chat_id, "len": len(body)}
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
