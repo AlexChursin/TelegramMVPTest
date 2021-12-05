@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 
 from loguru import logger
@@ -13,7 +14,7 @@ from telegram.telegram_view import tg_view
 
 app = FastAPI()
 WEBHOOK_PATH = f"/bot/{KEY}"
-WEBHOOK_URL = 'https://f02f-194-8-47-113.ngrok.io' + WEBHOOK_PATH
+WEBHOOK_URL = os.environ.get('URL_SERVER_WEBHOOK') + WEBHOOK_PATH
 
 
 @app.on_event("startup")
