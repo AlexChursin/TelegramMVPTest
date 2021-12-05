@@ -1,3 +1,5 @@
+from io import BytesIO
+
 from aiogram import Bot, types
 from aiogram.types import InlineKeyboardMarkup, InputFile
 
@@ -18,7 +20,8 @@ class TelegramView(IView):
         self._bot: Bot = bot_
 
     async def send_file_from_doctor(self, chat_id: int, data: bytes, filename: str, doctor_name: str):
-        await self._bot.send_document(chat_id, InputFile(str(data)), caption=filename)
+        b = BytesIO(data)
+        await self._bot.send_document(chat_id, b, caption=filename)
 
     async def delete_message(self, chat_id: int, message_id: int):
         await self._bot.delete_message(chat_id, message_id=message_id)
