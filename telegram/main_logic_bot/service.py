@@ -96,7 +96,7 @@ class BotService:
                 await self.view.send_message(chat_id, self.text_config.texts.reason, close_markup=True)
             user.state = State.await_reason_petition_text
 
-    def finish(self, chat_id, user):
+    async def finish(self, chat_id, user):
         if not user.is_emergency:
             send_text = self.text_config.texts.finish.format(user.day_value.lower(),
                                                              user.time_value.lower())
@@ -125,12 +125,8 @@ class BotService:
                 await self.view.send_message(chat_id, text=self.text_config.texts.number_error)
         elif user.state is State.await_reason_petition_text:
             user.reason_petition = text
-            user.state = State.await_medication_text
-            await self.view.send_message(chat_id, text=self.text_config.texts.medications)
-        elif user.state is State.await_medication_text:
-            user.medications = text
             if user.is_memory_user:
-                self.finish(chat_id, user)
+                await self.finish(chat_id, user)
             else:
                 await self.view.send_message(chat_id, text=self.text_config.texts.name_otch)
                 user.state = State.await_name_otch_text
@@ -143,7 +139,7 @@ class BotService:
             birthday = get_birthday(text)
             if birthday:
                 user.birthday = birthday
-                self.finish(chat_id, user)
+                await self.finish(chat_id, user)
             else:
                 await self.view.send_message(chat_id, text=self.text_config.texts.birthdate_error)
 
