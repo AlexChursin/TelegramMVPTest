@@ -19,3 +19,7 @@ def get_hello_keyboard(text_config):
     ]
     return buttons
 
+def get_change_time_cons_keyboard():
+    callback_back_b = MyButton('back', 'back', type_value=ButtonCollection.back_main.value).to_callback()
+    buttons = [InlineViewButton(text="Изменить время консультации", callback=callback_back_b)]
+    return buttons

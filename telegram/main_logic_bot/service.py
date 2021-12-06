@@ -7,7 +7,7 @@ from .bot_interface import IView
 from .button import ButtonCollection, MyButton
 from .config.text_config import TextBot
 from .consultate_client_data.client_provider import ClientDataProvider
-from .steps.hello import get_hello_keyboard
+from .steps.keyboards import get_hello_keyboard, get_change_time_cons_keyboard
 from .consultate_client_data.user_bot_state import State
 
 from ..utils import is_number, get_birthday
@@ -47,6 +47,16 @@ class BotService:
         text = self.text_config.texts.info
         await self.view.send_message(chat_id, text)
 
+    async def _send_reason_petition_or_phone_query(self, client, chat_id):
+        if client.is_memory_user:
+            await self.view.send_message(chat_id, self.text_config.texts.user_reason.format(client.name_otch),
+                                         doctor_n=client.c_doctor_name, close_markup=True)
+            client.state = State.await_reason_petition_text
+        else:
+            await self.view.send_phone_request(chat_id, self.text_config.texts.number,
+                                               doctor_name=client.c_doctor_name)
+            client.state = State.await_contacts
+
     async def answer_callback(self, chat_id: int, bot_message_id: int, user_id: int, callback_data: str):
         client = ClientDataProvider.get_client_state(user_id)
         button_object = ButtonCollection.from_callback(callback_data)
@@ -64,25 +74,18 @@ class BotService:
                                                  message_id=bot_message_id)
         if button_object.type is ButtonCollection.time_button:
             if client is not None:
+                client.is_emergency = False
                 client.time_value = button_object.label.lower()
-                callback_back_b = MyButton('back', 'back', type_value=ButtonCollection.back_main.value).to_callback()
-                buttons = [InlineViewButton(text="Изменить время консультации", callback=callback_back_b)]
+                buttons = get_change_time_cons_keyboard()
                 text = self.text_config.texts.cons.format(client.day_value, client.time_value)
                 await self.view.edit_bot_message(user_id, text=text, inline_buttons=buttons, message_id=bot_message_id)
-                await self.view.send_phone_request(chat_id, self.text_config.texts.number,
-                                                   doctor_name=client.c_doctor_name)
-                client.is_emergency = False
-                client.state = State.await_contacts
-
+                await self._send_reason_petition_or_phone_query(client, chat_id)
         if button_object.type is ButtonCollection.start_emergency_button:
             if client is not None:
                 client.is_emergency = True
                 client.day_value = None
                 client.time_value = None
-                await self.view.send_phone_request(chat_id, self.text_config.texts.number,
-                                                   doctor_name=client.c_doctor_name)
-                client.state = State.await_contacts
-
+                await self._send_reason_petition_or_phone_query(client, chat_id)
         if button_object.type is ButtonCollection.back_main:
             if client is not None:
                 await self.view.delete_message(chat_id, bot_message_id)
@@ -93,12 +96,8 @@ class BotService:
         client = ClientDataProvider.get_client_state(user_id)
         if client is not None:
             client.number = phone_text
-            if client.is_memory_user:
-                await self.view.send_message(chat_id, self.text_config.texts.user_reason.format(client.name_otch),
-                                             doctor_n=client.c_doctor_name, close_markup=True)
-            else:
-                await self.view.send_message(chat_id, self.text_config.texts.reason, doctor_n=client.c_doctor_name,
-                                             close_markup=True)
+            await self.view.send_message(chat_id, self.text_config.texts.reason, doctor_n=client.c_doctor_name,
+                                         close_markup=True)
             client.state = State.await_reason_petition_text
 
     async def finish(self, chat_id, client):
