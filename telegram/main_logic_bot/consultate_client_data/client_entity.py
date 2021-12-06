@@ -21,7 +21,7 @@ class StartClientData:
         self.state: Optional[State] = State.start_first
         self.dialog_id: Optional[int] = None
         self.is_emergency: bool = False
-        self.cons_finish: bool = False
+        self.is_memory_user: bool = False
 
     def __str__(self) -> str:
         return str(self.__dict__)

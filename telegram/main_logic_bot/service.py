@@ -90,15 +90,22 @@ class BotService:
         user = ClientDataProvider.get_user_obj(user_id)
         if user is not None:
             user.number = phone_text
-            if user.cons_finish:
+            if user.is_memory_user:
                 await self.view.send_message(chat_id, self.text_config.texts.user_reason.format(user.name_otch),close_markup=True)
             else:
                 await self.view.send_message(chat_id, self.text_config.texts.reason, close_markup=True)
             user.state = State.await_reason_petition_text
 
-    def finish(self, user):
+    def finish(self, chat_id, user):
+        if not user.is_emergency:
+            send_text = self.text_config.texts.finish.format(user.day_value.lower(),
+                                                             user.time_value.lower())
+        else:
+            send_text = self.text_config.texts.finish_emb
+        await self.view.send_message(chat_id, text=send_text)
+
         dialog_id = api.create_dialog(send_user=user)
-        user.cons_finish = True
+        user.is_memory_user = True
         if dialog_id is not None:
             user.dialog_id = dialog_id
             user.state = State.dialog
@@ -122,14 +129,8 @@ class BotService:
             await self.view.send_message(chat_id, text=self.text_config.texts.medications)
         elif user.state is State.await_medication_text:
             user.medications = text
-            if user.cons_finish:
-                if user.is_emergency:
-                    send_text = self.text_config.texts.finish_emb
-                else:
-                    send_text = self.text_config.texts.finish.format(user.day_value.lower(),
-                                                                     user.time_value.lower())
-                await self.view.send_message(chat_id, text=send_text)
-                self.finish(user)
+            if user.is_memory_user:
+                self.finish(chat_id, user)
             else:
                 await self.view.send_message(chat_id, text=self.text_config.texts.name_otch)
                 user.state = State.await_name_otch_text
@@ -142,13 +143,7 @@ class BotService:
             birthday = get_birthday(text)
             if birthday:
                 user.birthday = birthday
-                if not user.is_emergency:
-                    send_text = self.text_config.texts.finish.format(user.day_value.lower(),
-                                                                     user.time_value.lower())
-                else:
-                    send_text = self.text_config.texts.finish_emb
-                await self.view.send_message(chat_id, text=send_text)
-                self.finish(user)
+                self.finish(chat_id, user)
             else:
                 await self.view.send_message(chat_id, text=self.text_config.texts.birthdate_error)
 
