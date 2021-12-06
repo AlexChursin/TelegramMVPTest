@@ -3,7 +3,7 @@ from typing import List, Optional
 from telegram.main_logic_bot.consultate_client_data.client_entity import StartClientData
 
 
-def get_user_from_refer(value: str = None):
+def get_doctor_from_refer(value: str = None):
     if value is not None:
         return "Елены Петровой"
     else:

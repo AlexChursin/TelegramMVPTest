@@ -7,7 +7,7 @@ from .bot_init import bot
 from .main_logic_bot.bot_entity import InlineViewButton
 from .main_logic_bot.bot_interface import IView
 
-from typing import List
+from typing import List, Optional
 
 
 class TelegramView(IView):
@@ -45,17 +45,21 @@ class TelegramView(IView):
                                           reply_markup=markup,
                                           parse_mode='HTML')
 
-    async def send_phone_request(self, chat_id: int, text: str):
+    async def send_phone_request(self, chat_id: int, text: str, doctor_name: str):
         markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
         markup.add(types.KeyboardButton(text='Передать номер телефона', request_contact=True))
-
+        if doctor_name is not None:
+            text = f'Ассистент <b>{doctor_name}:</b>\n{text}'
         await self._bot.send_message(chat_id, text=text, reply_markup=markup, parse_mode='HTML')
 
     async def send_message(self, chat_id: int, text: str,
+                           doctor_n: Optional[str] = None,
                            inline_buttons: List[InlineViewButton] = None,
                            close_markup: bool = False):
         print(chat_id)
         markup = self.__get_markup(inline_buttons, close_markup)
+        if doctor_n is not None:
+            text = f'Ассистент <b>{doctor_n}:</b>\n{text}'
         await self._bot.send_message(chat_id, text=text, reply_markup=markup, parse_mode='HTML')
 
 

@@ -8,7 +8,7 @@ from .bot_init import bot, dp
 
 from .main_logic_bot.config.text_config import TextBot
 from .main_logic_bot.service import BotService
-from .telegram_view import tg_view
+from .aiogram_view import tg_view
 
 bot_service = BotService(view=tg_view,
                          text_config=TextBot(**json.load(open('telegram/main_logic_bot/config/bot_text_word.json', 'r', encoding='UTF-8'))))

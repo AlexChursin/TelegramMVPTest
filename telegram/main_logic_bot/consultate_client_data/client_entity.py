@@ -7,8 +7,8 @@ from .user_bot_state import State
 
 @dataclass
 class StartClientData:
-    def __init__(self, from_user: Optional[int] = None):
-        self.from_user = from_user
+    def __init__(self, doctor_name: str = None):
+        self.c_doctor_name: str = doctor_name
         self.datetime_start = datetime.now()
         self.day_value: Optional[str] = None
         self.time_value: Optional[str] = None

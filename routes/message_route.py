@@ -13,7 +13,7 @@ from telegram.bot_controller import bot, dp
 from db.core import database, engine, metadata
 from routes.service import get_chat_id, create_cons
 from telegram.bot_init import KEY
-from telegram.telegram_view import tg_view
+from telegram.aiogram_view import tg_view
 
 message_route = APIRouter()
 
