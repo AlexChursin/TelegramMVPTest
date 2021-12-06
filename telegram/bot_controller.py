@@ -25,6 +25,11 @@ async def info_message(message):
     await bot_service.send_info(chat_id=message.chat.id)
 
 
+@dp.message_handler(commands=['reset'])
+def info_message(message):
+    bot_service.reset_user(user_id=message.from_user.id)
+
+
 @dp.message_handler()
 async def text_message(message: Message):
     await bot_service.answer_on_any_message(chat_id=message.chat.id, user_id=message.from_user.id, text=message.text)

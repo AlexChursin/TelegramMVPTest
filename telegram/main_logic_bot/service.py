@@ -92,6 +92,10 @@ class BotService:
                 await self.view.delete_message(chat_id, bot_message_id + 1)
                 await self.send_start_message(chat_id, user_id)
 
+    def reset_user(self, user_id: int):
+        doctor_name = api.get_doctor_from_refer('')
+        ClientDataProvider.set_user_obj(user_id, doctor_name)
+
     async def answer_on_contacts(self, chat_id: int, user_id: int, phone_text: str):
         client = ClientDataProvider.get_client_state(user_id)
         if client is not None:
