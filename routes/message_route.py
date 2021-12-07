@@ -1,30 +1,13 @@
-import os
-from http import HTTPStatus
-from typing import Optional
-
-import uvicorn
-from loguru import logger
-from aiogram.types import Update
 from fastapi.responses import JSONResponse
-from fastapi import FastAPI, File, HTTPException, APIRouter
-from pydantic import BaseModel, Field
-
-from telegram.bot_controller import bot, dp
-from db.core import database, engine, metadata
+from fastapi import File, APIRouter
+from fastapi.responses import JSONResponse
+from pytrovich.enums import NamePart, Gender, Case
+from pytrovich.maker import PetrovichDeclinationMaker
+from .schemas import *
 from routes.service import get_chat_id, create_cons
-from telegram.bot_init import KEY
 from telegram.aiogram_view import tg_view
 
 message_route = APIRouter()
-
-
-class ErrorMessage(BaseModel):
-    detail: str
-
-
-class Message(BaseModel):
-    chat_id: int = Field(1, description='чат привязанный к консультации')
-
 
 
 @message_route.post("/send/text_message", response_model=Message, responses={404: {"model": ErrorMessage}})
@@ -53,3 +36,23 @@ async def file(cons_id: int, filename: str, doctor_name: str, body: bytes = File
     else:
         return JSONResponse(status_code=404, content={'detail': 'Consulate not found'})
 
+
+maker = PetrovichDeclinationMaker()
+
+
+
+@message_route.get("/utils/petrovich", response_model=Petrovich)
+async def utils(
+        first_name: str = 'Елена',
+        middle_name: str = 'Владимировна',
+        last_name: str = 'Сидорова',
+        case: Padej = Padej.GENITIVE,
+        gender: MyGender = MyGender.FEMALE
+):
+    p_case = [Case(i) for i, p in enumerate(Padej) if case.name == p.name][0]
+    p_gender = [Gender(i) for i, p in enumerate(MyGender) if gender.name == p.name][0]
+
+    f = maker.make(NamePart.FIRSTNAME, p_gender, p_case, original_name=first_name)
+    m = maker.make(NamePart.MIDDLENAME, p_gender, p_case, middle_name)
+    l = maker.make(NamePart.LASTNAME, p_gender, p_case, last_name)
+    return Petrovich(first_name=f, middle_name=m, last_name=l)
