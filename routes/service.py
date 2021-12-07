@@ -1,10 +1,7 @@
-from sqlite3 import IntegrityError
 from typing import Optional
-
 from ormar import NoMatch
-from telegram.bot_controller import bot, dp
-from db.core import database
 from db.model import UserDB
+from telegram.main_logic_bot.consultate_client_data.client_entity import StartClientData
 
 
 async def get_chat_id(cons_id: int) -> Optional[int]:
@@ -23,5 +20,3 @@ async def create_cons(chat_id: int, cons_id: int) -> Optional[int]:
     except NoMatch:
         user = await UserDB.objects.create(cons_id=cons_id, chat_id=chat_id)
     return user.id
-
-

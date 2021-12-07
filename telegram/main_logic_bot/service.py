@@ -6,6 +6,7 @@ from .bot_entity import InlineViewButton
 from .bot_interface import IView
 from .button import ButtonCollection, MyButton
 from .config.text_config import TextBot
+from .consultate_client_data.client_entity import StartClientData
 from .consultate_client_data.client_provider import ClientDataProvider
 from .steps.keyboards import get_hello_keyboard, get_change_time_cons_keyboard
 from .consultate_client_data.user_bot_state import State
@@ -39,7 +40,7 @@ class BotService:
         if client is None:
             ClientDataProvider.set_user_obj(user_id, doctor_name)
         else:
-            client.c_doctor_name = doctor_name
+            client.update()
         buttons = get_hello_keyboard(self.text_config)
         await self.view.send_message(chat_id, text, inline_buttons=buttons)
 

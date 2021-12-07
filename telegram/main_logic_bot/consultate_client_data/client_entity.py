@@ -19,6 +19,9 @@ class StartClientData:
     def __str__(self) -> str:
         return str(self.__dict__)
 
+    def update(self):
+        self.__init__(self.c_doctor_name)
+
 
 class ConsulateClient:
     def __init__(self):
