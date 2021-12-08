@@ -52,6 +52,7 @@ class TelegramView(IView):
             text = f'Ассистент <b>{doctor_name}:</b>\n{text}'
         await self._bot.send_message(chat_id, text=text, reply_markup=markup, parse_mode='HTML')
 
+
     async def send_message(self, chat_id: int, text: str,
                            doctor_n: Optional[str] = None,
                            inline_buttons: List[InlineViewButton] = None,

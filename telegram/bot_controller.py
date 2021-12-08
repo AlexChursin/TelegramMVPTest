@@ -3,7 +3,6 @@ import threading
 
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils import executor
-
 from .bot_init import bot, dp
 
 from .main_logic_bot.config.text_config import TextBot
@@ -28,6 +27,19 @@ async def info_message(message):
 @dp.message_handler(commands=['reset'])
 async def info_message(message):
     await bot_service.reset_user(chat_id=message.chat.id, user_id=message.from_user.id)
+
+
+@dp.message_handler(commands=['contact'])
+async def send_contact(message):
+    await bot.send_contact(message.chat.id, phone_number='123', first_name='Имя', last_name='Фамилия', vcard=
+    "BEGIN:VCARD\n" +
+    "VERSION:3.0\n" +
+    "N:Solo;Han\n" +
+    "ORG:Организация ассистент\n" +
+    "URL:https://t.me/docCRMbot?start=doc_012e752d-d779-40c6-8c97-e470c1dfc175\n"
+    "TEL;TYPE=voice,work,pref:+1234567890\n" +
+    "EMAIL:hansolo@mfalcon.com\n" +
+    "END:VCARD")
 
 
 @dp.message_handler()

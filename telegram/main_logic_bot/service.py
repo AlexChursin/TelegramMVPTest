@@ -75,11 +75,10 @@ class BotService:
                                                  message_id=bot_message_id)
         if button_object.type is ButtonCollection.time_button:
             if client is not None:
-                client.is_emergency = False
                 client.consulate.time_value = button_object.label.lower()
                 buttons = get_change_time_cons_keyboard()
                 text = self.text_config.texts.cons.format(client.consulate.day_value, client.consulate.time_value)
-                await self.view.edit_bot_message(user_id, text=text, inline_buttons=buttons, message_id=bot_message_id)
+                await self.view.edit_bot_message(chat_id=chat_id, text=text, inline_buttons=buttons, message_id=bot_message_id)
                 await self._send_reason_petition_or_phone_query(client, chat_id)
         if button_object.type is ButtonCollection.start_emergency_button:
             if client is not None:
@@ -129,6 +128,8 @@ class BotService:
         if client is None:
             await self.send_start_message(chat_id, user_id)
             return
+        if client.state is State.start_first:
+            await self.send_start_message(chat_id, user_id)
         if client.state is State.await_contacts:
             if is_number(text):
                 client.state = State.dialog
