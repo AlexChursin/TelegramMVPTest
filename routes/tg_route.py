@@ -5,10 +5,11 @@ from fastapi import APIRouter
 from loguru import logger
 
 from telegram.bot_controller import bot, dp
-from telegram.bot_init import KEY
+from telegram.bot_init import TELEGRAM_TOKEN
+from telegram.config import URL_SERVER, SERVER_PREFIX
 
-WEBHOOK_PATH = f"/bot/{KEY}"
-WEBHOOK_URL = os.environ.get('URL_SERVER_WEBHOOK') + WEBHOOK_PATH
+WEBHOOK_PATH = f"/bot/{TELEGRAM_TOKEN}"
+WEBHOOK_URL = URL_SERVER + SERVER_PREFIX + WEBHOOK_PATH
 
 tg_route = APIRouter()
 
@@ -20,7 +21,6 @@ async def set_webhook() -> str:
             url=WEBHOOK_URL
         )
     webhook_info = await bot.get_webhook_info()
-    logger.info(f'telegram webhook url: {webhook_info.url}')
     return webhook_info.url
 
 

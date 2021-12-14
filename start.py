@@ -1,14 +1,14 @@
 import uvicorn
 from fastapi import FastAPI
 from loguru import logger
-from db.core import database, engine, metadata
-from routes.message_route import message_route
+from routes.message_route import message_route, util_route
 from routes.tg_route import set_webhook, tg_route
+from telegram.config import SERVER_PREFIX
 
-app = FastAPI()
-app.state.database = database
-app.include_router(tg_route)
-app.include_router(message_route, tags=["Message"])
+app = FastAPI(title='API TELEGRAM BOT', description='API для взаимодействия с телеграмм ботом', version='1.0.0', docs_url=f'{SERVER_PREFIX}/swagger')
+app.include_router(tg_route, prefix=SERVER_PREFIX)
+app.include_router(message_route, tags=["Message"], prefix=SERVER_PREFIX)
+app.include_router(util_route, tags=["Utils"], prefix=SERVER_PREFIX)
 
 
 @app.on_event("startup")
@@ -16,15 +16,7 @@ async def startup():
     url = await set_webhook()
     logger.info(f'telegram webhook url: {url}')
 
-    metadata.create_all(engine)
-    await database.connect()
-
-
-@app.on_event("shutdown")
-async def shutdown():
-    await database.disconnect()
-
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8080, debug=True)
+    uvicorn.run(app, host="127.0.0.1", port=8080, debug=True)

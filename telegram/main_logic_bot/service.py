@@ -1,7 +1,8 @@
 import logging
 from typing import Optional
 
-import api
+from api import back_api
+from messenger_api import mess_api
 from .bot_entity import InlineViewButton
 from .bot_interface import IView
 from .button import ButtonCollection, MyButton
@@ -21,7 +22,11 @@ class BotService:
 
     async def send_start_message(self, chat_id: int, user_id: int, refer_url_text: str = ''):
         refer_value = get_refer(refer_url_text)
-        doctor_name = api.get_doctor_from_refer(refer_value)
+        doctor = await back_api.get_doctor_from_refer(refer_value)
+        doctor_name = None
+        if doctor is not None:
+            first_name, middle_name = doctor.split()
+            doctor_name = mess_api.get_petrovich(first_name, middle_name)
         client = ClientDataProvider.get_client_data(user_id)
         if doctor_name is None:
             is_none = False
@@ -33,8 +38,6 @@ class BotService:
             if is_none:
                 await self.view.send_message(chat_id, 'Зайдите пожалуйста по реферальной ссылке врача')
                 return
-            else:
-                doctor_name = client.c_doctor_name
 
         text = self.text_config.texts.start.format(str(doctor_name))
         if client is None:
@@ -64,7 +67,7 @@ class BotService:
         if button_object.type is ButtonCollection.start_button:
             if client is not None:
                 client.consulate.day_value = button_object.label.lower()
-                list_ = api.get_list_free_times()
+                list_ = back_api.get_list_free_times()
                 buttons = [InlineViewButton(text=value,
                                             callback=MyButton(value, value,
                                                               ButtonCollection.time_button.value).to_callback()) for
@@ -115,7 +118,8 @@ class BotService:
             send_text = self.text_config.texts.finish_emb
         await self.view.send_message(chat_id, text=send_text, doctor_n=client.c_doctor_name)
 
-        dialog_id = api.create_dialog(send_user=client)
+        dialog_id = back_api.create_dialog(send_user=client)
+        await mess_api.create_cons(chat_id, dialog_id)
         client.is_memory_user = True
         if dialog_id is not None:
             client.dialog_id = dialog_id
@@ -161,7 +165,7 @@ class BotService:
 
         elif client.state is State.dialog:
             if client.dialog_id is not None:
-                is_send = api.send_patient_text_message(text=text, dialog_id=client.dialog_id)
+                is_send = back_api.send_patient_text_message(text=text, dialog_id=client.dialog_id)
                 if not is_send:
                     pass  ## нужно написать ответ бота если сообщение не отправлено 29.11.2021
 
