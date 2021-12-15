@@ -2,6 +2,7 @@ from io import BytesIO
 
 from aiogram import Bot, types
 from aiogram.types import InlineKeyboardMarkup, InputFile
+from sentry_sdk import capture_exception
 
 from .bot_init import bot
 from .main_logic_bot.bot_entity import InlineViewButton
@@ -20,8 +21,11 @@ class TelegramView(IView):
         self._bot: Bot = bot_
 
     async def send_file_from_doctor(self, chat_id: int, data: bytes, filename: str, doctor_name: str):
-        b = BytesIO(data)
-        await self._bot.send_document(chat_id, b, caption=filename)
+        try:
+            b = BytesIO(data)
+            await self._bot.send_document(chat_id, b, caption=filename)
+        except Exception as e:
+            capture_exception(e)
 
     async def delete_message(self, chat_id: int, message_id: int):
         await self._bot.delete_message(chat_id, message_id=message_id)

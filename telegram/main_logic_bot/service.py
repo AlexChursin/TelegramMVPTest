@@ -3,16 +3,20 @@ from typing import Optional
 
 from backend import back_api
 from messenger_api import mess_api
-from .bot_entity import InlineViewButton
 from .bot_interface import IView
-from .button import ButtonCollection, MyButton
+from .button import ButtonCollection
 from .client_repo.client_entity import Client
 from .client_repo.client_interface import IClientRepo
 from .config.text_config import TextBot
 from .steps.keyboards import get_hello_keyboard, get_change_time_cons_keyboard, get_start_button
 from .client_repo.user_bot_state import State
-
 from ..utils import is_number, get_birthday
+import sentry_sdk
+
+sentry_sdk.init(
+    "https://800a5e93aeac4323a5a12b23870eb917@o1091110.ingest.sentry.io/6107767",
+    traces_sample_rate=1.0,
+)
 
 
 class BotService:
