@@ -4,7 +4,7 @@ from aiogram.types import Update
 from fastapi import APIRouter
 from loguru import logger
 
-from telegram.bot_controller import bot, dp
+from telegram.aiogram_controller import bot, dp
 from telegram.bot_init import TELEGRAM_TOKEN
 from telegram.config import URL_SERVER, SERVER_PREFIX
 

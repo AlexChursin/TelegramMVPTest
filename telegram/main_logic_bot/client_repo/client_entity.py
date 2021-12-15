@@ -6,9 +6,10 @@ from .user_bot_state import State
 
 
 @dataclass
-class StartClientData:
-    def __init__(self, doctor_name: str = None):
-        self.c_doctor_name: str = doctor_name
+class Client:
+    def __init__(self, doctor_name: str, doc_token: str):
+        self.doctor_name: str = doctor_name
+        self.doc_token: str = doc_token
         self.datetime_start = datetime.now()
         self.state: Optional[State] = State.start_first
         self.consulate: ConsulateClient = ConsulateClient()
@@ -19,14 +20,12 @@ class StartClientData:
     def __str__(self) -> str:
         return str(self.__dict__)
 
-    def update(self):
-        self.__init__(self.c_doctor_name)
-
 
 class ConsulateClient:
     def __init__(self):
         self.day_value: Optional[str] = None
         self.time_value: Optional[str] = None
+        self.schedule_id: Optional[int] = None
         self.reason_petition: Optional[str] = None
         self.name_otch: Optional[str] = None
         self.age: Optional[str] = None
