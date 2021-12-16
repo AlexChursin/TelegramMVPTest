@@ -20,7 +20,6 @@ bot_service = BotService(view=tg_view,
 @dp.message_handler(commands=['start'])
 async def on_start_command(message: Message):
     try:
-        capture_message('Something went wrong')
         await bot_service.send_start_message(chat_id=message.chat.id, user_id=message.from_user.id,
                                              refer_url_text=message.text)
     except Exception as e:

@@ -62,8 +62,10 @@ class API:
     def get_list_free_days(self, doc_token: str) -> List[str]:
         r = requests.get(f'{self.url}/schedule?doc_token={doc_token}')
         data = r.json()['data']
-        return [str(day) for day in data.keys()]
-
+        if len(data):
+            return [str(day) for day in data.keys()]
+        else:
+            return []
     def send_patient_text_message(self, text: str, dialog_id: int):
         return True
 

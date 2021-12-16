@@ -22,6 +22,15 @@ def get_hello_keyboard(text_config, list_key_days: List[str]):
     return keyboard
 
 
+def get_hello_empty_keyboard(text_config):
+    buttons = []
+    buttons.append(MyButton(label=text_config.buttons.start_button_emergency.label,
+                            data=list_key_days[2],
+                            type_value=ButtonCollection.start_emergency_button.value))
+    keyboard = [InlineViewButton(text=b.label, callback=b.to_callback()) for b in buttons]
+    return keyboard
+
+
 def get_change_time_cons_keyboard():
     callback_back_b = MyButton('back', 'back', type_value=ButtonCollection.back_main.value).to_callback()
     buttons = [InlineViewButton(text="Изменить время консультации", callback=callback_back_b)]

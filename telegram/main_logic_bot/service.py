@@ -26,12 +26,12 @@ class BotService:
         self.client_repo: IClientRepo = client_repo
 
     async def send_start_message(self, chat_id: int, user_id: int, refer_url_text: str = ''):
-        refer_value = get_refer(refer_url_text)
-        doctor = await back_api.get_doctor(refer_value)
+        token = get_refer(refer_url_text)
+        doctor = await back_api.get_doctor(token)
         doctor_name = None
         if doctor is not None:
             first_name, middle_name = doctor.split()
-            doctor_name = mess_api.get_petrovich(first_name, middle_name)
+            doctor_name = await mess_api.get_petrovich(first_name, middle_name)
         client = self.client_repo.get_client_data(user_id)
         if doctor_name is None:
             is_none = False
@@ -41,14 +41,18 @@ class BotService:
                 if client.doctor_name is None:
                     is_none = True
             if is_none:
-                await self.view.send_message(chat_id, 'Зайдите пожалуйста по реферальной ссылке врача')
+                await self.view.send_message(chat_id, 'Зайдите, пожалуйста, по реферальной ссылке врача')
                 return
 
         text = self.text_config.texts.start.format(str(doctor_name))
-        self.client_repo.set_client(user_id, doctor_name, doctor_name)
+        self.client_repo.set_client(user_id, doctor_name, token)
         list_key_days = back_api.get_list_free_days(doc_token=client.doc_token)
-        buttons = get_hello_keyboard(self.text_config, list_key_days)
-        await self.view.send_message(chat_id, text, inline_buttons=buttons)
+        if len(list_key_days):
+            buttons = get_hello_keyboard(self.text_config, list_key_days)
+            await self.view.send_message(chat_id, text, inline_buttons=buttons)
+        else:
+            await self.view.send_message(chat_id, self.text_config.texts.start_empty.format(str(doctor_name)))
+
         self.client_repo.save_client(client)
 
     async def send_info(self, chat_id):

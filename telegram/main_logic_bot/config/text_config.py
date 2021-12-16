@@ -9,6 +9,7 @@ class Button(BaseModel):
 
 class Texts(BaseModel):
     start: str
+    start_empty: str
     info: str
     set_cons_time: str
     cons: str
