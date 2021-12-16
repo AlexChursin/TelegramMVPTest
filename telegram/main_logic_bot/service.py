@@ -13,9 +13,15 @@ from .client_repo.user_bot_state import State
 from ..utils import is_number, get_birthday
 import sentry_sdk
 
+
+def traces_sampler(sampling_context):
+    return 1
+
+
 sentry_sdk.init(
     "https://800a5e93aeac4323a5a12b23870eb917@o1091110.ingest.sentry.io/6107767",
     traces_sample_rate=1.0,
+    traces_sampler=traces_sampler
 )
 
 
@@ -68,7 +74,6 @@ class BotService:
             await self.view.send_phone_request(chat_id, self.text_config.texts.number,
                                                doctor_name=client.doctor_name)
             client.state = State.await_contacts
-            
 
     async def answer_callback(self, chat_id: int, bot_message_id: int, user_id: int, callback_data: str):
         client = self.client_repo.get_client_data(user_id)
@@ -88,7 +93,8 @@ class BotService:
                 client.consulate.schedule_id = int(button_object.data)
                 buttons = get_change_time_cons_keyboard()
                 text = self.text_config.texts.cons.format(client.consulate.day_value, client.consulate.time_value)
-                await self.view.edit_bot_message(chat_id=chat_id, text=text, inline_buttons=buttons, message_id=bot_message_id)
+                await self.view.edit_bot_message(chat_id=chat_id, text=text, inline_buttons=buttons,
+                                                 message_id=bot_message_id)
                 await self._send_reason_petition_or_phone_query(client, chat_id)
         if button_object.type is ButtonCollection.start_emergency_button:
             if client is not None:
@@ -109,7 +115,6 @@ class BotService:
         self.client_repo.set_client(user_id, client.doctor_name, client.doc_token)
         self.client_repo.save_client(client)
         await self.view.send_message(chat_id, 'Пользователь обновлен')
-
 
     async def answer_on_contacts(self, chat_id: int, user_id: int, phone_text: str):
         client = self.client_repo.get_client_data(user_id)
