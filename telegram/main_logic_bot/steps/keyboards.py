@@ -1,5 +1,5 @@
 from typing import List
-from ..bot_entity import InlineViewButton
+from ..bot_entity import InlineViewButton, Schedule
 from ..button import ButtonCollection, MyButton
 from ..client_repo.client_entity import Client
 
@@ -28,9 +28,9 @@ def get_change_time_cons_keyboard():
     return buttons
 
 
-def get_start_button(list_times):
+def get_start_button(list_times: List[Schedule]):
     return [InlineViewButton(text=str(value.time),
-                             callback=MyButton(value.time, value.id,
+                             callback=MyButton(value.time, str(value.id),
                                                ButtonCollection.time_button.value).to_callback()) for
             value in list_times]
 

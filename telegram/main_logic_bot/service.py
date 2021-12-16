@@ -81,7 +81,7 @@ class BotService:
         if button_object.type is ButtonCollection.time_button:
             if client is not None:
                 client.consulate.time_value = button_object.label.lower()
-                client.consulate.schedule_id = button_object.data
+                client.consulate.schedule_id = int(button_object.data)
                 buttons = get_change_time_cons_keyboard()
                 text = self.text_config.texts.cons.format(client.consulate.day_value, client.consulate.time_value)
                 await self.view.edit_bot_message(chat_id=chat_id, text=text, inline_buttons=buttons, message_id=bot_message_id)

@@ -21,9 +21,10 @@ async def test_get_doctor_from_refer():
 @pytest.mark.asyncio
 async def test_get_list_times():
     r = back_api.get_list_free_times(day='2day', doc_token=doc_token)
-    assert len(r) == 0
-    r = back_api.get_list_free_times(day='2morrow', doc_token=doc_token)
+    assert len(r) == 2
     assert r[0].id == 1
+    r = back_api.get_list_free_times(day='2morrow', doc_token=doc_token)
+    assert len(r) == 0
 
 
 @pytest.mark.asyncio
