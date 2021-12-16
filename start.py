@@ -5,7 +5,7 @@ from routes.message_route import message_route, util_route
 from routes.tg_route import set_webhook, tg_route
 from telegram.config import SERVER_PREFIX
 
-app = FastAPI(title='API TELEGRAM BOT', description='API для взаимодействия с телеграмм ботом', version='1.0.0', docs_url=f'{SERVER_PREFIX}/swagger')
+app = FastAPI(title='API TELEGRAM BOT', description='API для взаимодействия с телеграмм ботом', version='1.0.0', docs_url=f'{SERVER_PREFIX}/swagger', openapi_url=f'{SERVER_PREFIX}/openapi.json')
 app.include_router(tg_route, prefix=SERVER_PREFIX)
 app.include_router(message_route, tags=["Message"], prefix=SERVER_PREFIX)
 app.include_router(util_route, tags=["Utils"], prefix=SERVER_PREFIX)
