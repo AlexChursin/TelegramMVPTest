@@ -1,29 +1,57 @@
-
+from http import HTTPStatus
 from typing import Optional
-from .client_entity import Client
+
+from messenger_api import mess_api, MessengerAPI
+from .client_entity import TelegramClient, Consulate
 from .client_interface import IClientRepo
 
+#
+# class MemoryClientRepo(IClientRepo):
+#     def new_consulate(self, user_id: int) -> Consulate:
+#         pass
+#
+#     def save_client(self, client: TelegramClient) -> bool:
+#         self._clients[client.user_id] = client
+#         return True
+#
+#     def __init__(self):
+#         self._clients = {}
+#
+#     def get_client(self, user_id: int) -> Optional[TelegramClient]:
+#         if user_id in self._clients:
+#             return self._clients[user_id]
+#         return None
+#
+#     def new_client(self, user_id: int, chat_id: int, status: int, doctor_name: str, doctor_name_p: str, doc_token: str) -> bool:
+#         self._clients[user_id] = TelegramClient(user_id=user_id, chat_id=chat_id, status=status,
+#                                                 doctor_token=doc_token, doctor_name=doctor_name)
+#         return True
 
-class MemoryClientRepo(IClientRepo):
-    def save_client(self, client: Client) -> bool:
-        pass
 
+class APIClientRepo(IClientRepo):
     def __init__(self):
-        self._clients = {}
+        self.api: MessengerAPI = mess_api
+
+    async def new_consulate(self, user_id: int, chat_id: int) -> Consulate:
+        consulate = Consulate(user_id=user_id, chat_id=chat_id)
+        client = await self.api.new_consulate(user_id, consulate)
+        return client.consulate
 
 
-    def get_client_data(self, user_id: int) -> Optional['Client']:
-        if user_id in self._clients:
-            return self._clients[user_id]
+    async def get_client(self, user_id: int) -> Optional[TelegramClient]:
+        return await self.api.get_client(user_id)
+
+    async def set_client(self, user_id: int, chat_id: int, status: int, doctor_name: str, doctor_name_p: str, doc_token: str) -> Optional[TelegramClient]:
+        new_client = TelegramClient(user_id=user_id, chat_id=chat_id, status=status, doctor_token=doc_token,
+                                    doctor_name_p=doctor_name_p, doctor_name=doctor_name)
+        client = await self.api.new_client(new_client)
+
+        if client is None:
+            return await self.save_client(new_client)
+        return client
+
+    async def save_client(self, client: TelegramClient) -> Optional[TelegramClient]:
+        is_updated = await self.api.update_client(client)
+        if is_updated:
+            return client
         return None
-
-    def set_client(self, user_id: int, doctor_name: str, doc_token: str):
-        # time_two_hour_ago = datetime.now() - 3600 * 120
-        # for k, client in ClientDataProvider._clients.items():
-        #     if client.datetime_start < time_two_hour_ago and not client.is_memory_user:
-        #         ClientDataProvider._clients.pop(k)
-        self._clients[user_id] = Client(doctor_name, doc_token)
-        return None
-
-
-

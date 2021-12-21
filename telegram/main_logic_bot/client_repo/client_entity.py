@@ -2,14 +2,43 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
+from pydantic import BaseModel
+
 from .user_bot_state import State
+
+
+class Consulate(BaseModel):
+    user_id: int
+    chat_id: Optional[int]
+    reason_petition: Optional[str] = None
+    select_day: Optional[str] = None
+    select_time: Optional[str] = None
+    select_schedule_id: Optional[str] = None
+    select_is_emergency: bool = False
+    dialog_id: Optional[int] = None
+    cons_token: Optional[str] = None
+
+
+class TelegramClient(BaseModel):
+    user_id: int
+    chat_id: int
+    status: int = 1
+    age: Optional[int] = None
+    phone: Optional[str] = None
+    doctor_token: str = None
+    doctor_name: str = None
+    doctor_name_p: str = None
+    client_token: Optional[str] = None
+    first_middle_name: Optional[str] = None
+    consulate: Optional[Consulate] = None
+    consulate_id: Optional[int] = None
 
 
 @dataclass
 class Client:
-    def __init__(self, doctor_name: str, doc_token: str):
+    def __init__(self, doctor_name: str, doctor_token: str):
         self.doctor_name: str = doctor_name
-        self.doc_token: str = doc_token
+        self.doctor_token: str = doctor_token
         self.datetime_start = datetime.now()
         self.state: Optional[State] = State.start_first
         self.consulate: ConsulateClient = ConsulateClient()

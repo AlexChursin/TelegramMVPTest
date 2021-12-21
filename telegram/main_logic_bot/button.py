@@ -9,10 +9,12 @@ class AutoName(Enum):
 
 
 class ButtonCollection(AutoName):
-    start_button = auto()
-    start_emergency_button = auto()
+    start_b = auto()
+    start_emer_b = auto()
     time_button = auto()
     back_main = auto()
+    recommend_friends = auto()
+    new_query = auto()
 
     @staticmethod
     def from_callback(data: str) -> 'MyButton':

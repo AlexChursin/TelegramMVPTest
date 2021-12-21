@@ -5,6 +5,7 @@ from aiogram.types import InlineKeyboardMarkup, InputFile
 from sentry_sdk import capture_exception
 
 from .bot_init import bot
+from .config import BOT_NAME
 from .main_logic_bot.bot_entity import InlineViewButton
 from .main_logic_bot.bot_interface import IView
 
@@ -12,6 +13,17 @@ from typing import List, Optional
 
 
 class TelegramView(IView):
+    async def send_vcard(self, chat_id: int, doctor_name: str, doc_token: str):
+        await self._bot.send_contact(chat_id, phone_number='+11111111111', first_name=doctor_name.split()[0],
+                                     last_name=doctor_name.split()[0],
+                                     vcard="BEGIN:VCARD\n" +
+                                           "VERSION:3.0\n" +
+                                           "N:Solo;Han\n" +
+                                           # "ORG:Организация ассистент\n" +
+                                           f"URL:https://t.me/{BOT_NAME}?start=doc_{doc_token}\n"
+                                           "TEL;TYPE=voice,work,pref:+111111111111\n" +
+                                           # "EMAIL:hansolo@mfalcon.com\n" +
+                                           "END:VCARD")
 
     async def send_message_doctor(self, chat_id: int, text: str, doctor_name: str):
         text = f"<b>{doctor_name}</b>\n{text}"
@@ -56,11 +68,10 @@ class TelegramView(IView):
             text = f'Ассистент <b>{doctor_name}:</b>\n{text}'
         await self._bot.send_message(chat_id, text=text, reply_markup=markup, parse_mode='HTML')
 
-
-    async def send_message(self, chat_id: int, text: str,
-                           doctor_n: Optional[str] = None,
-                           inline_buttons: List[InlineViewButton] = None,
-                           close_markup: bool = False):
+    async def send_assistant_message(self, chat_id: int, text: str,
+                                     doctor_n: Optional[str] = None,
+                                     inline_buttons: List[InlineViewButton] = None,
+                                     close_markup: bool = False):
         print(chat_id)
         markup = self.__get_markup(inline_buttons, close_markup)
         if doctor_n is not None:

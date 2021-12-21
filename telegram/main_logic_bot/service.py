@@ -1,17 +1,16 @@
-import logging
-from typing import Optional
+import sentry_sdk
 
-from backend import back_api
+from backend_api import back_api
 from messenger_api import mess_api
 from .bot_interface import IView
 from .button import ButtonCollection
-from .client_repo.client_entity import Client
+from .client_repo.client_entity import TelegramClient
 from .client_repo.client_interface import IClientRepo
-from .config.text_config import TextBot
-from .steps.keyboards import get_hello_keyboard, get_change_time_cons_keyboard, get_start_button
 from .client_repo.user_bot_state import State
+from .config.text_config import TextBot
+from .service_funcs import _get_doctor_from_url
+from .steps.keyboards import get_hello_keyboard, get_change_time_cons_keyboard, get_start_button
 from ..utils import is_number, get_birthday
-import sentry_sdk
 
 
 def traces_sampler(sampling_context):
@@ -31,167 +30,191 @@ class BotService:
         self.text_config: TextBot = text_config
         self.client_repo: IClientRepo = client_repo
 
-    async def send_start_message(self, chat_id: int, user_id: int, refer_url_text: str = ''):
-        token = get_refer(refer_url_text)
-        doctor = await back_api.get_doctor(token)
-        doctor_name = None
-        if doctor is not None:
-            first_name, middle_name = doctor.split()
-            doctor_name = await mess_api.get_petrovich(first_name, middle_name)
-        client = self.client_repo.get_client_data(user_id)
-        if doctor_name is None:
-            is_none = False
-            if client is None:
-                is_none = True
-            else:
-                if client.doctor_name is None:
-                    is_none = True
-            if is_none:
-                await self.view.send_message(chat_id, 'Зайдите, пожалуйста, по реферальной ссылке врача')
-                return
-
-        text = self.text_config.texts.start.format(str(doctor_name))
-        self.client_repo.set_client(user_id, doctor_name, token)
-        list_key_days = back_api.get_list_free_days(doc_token=client.doc_token)
+    async def _send_doctor_hello_message(self, client: TelegramClient, token: str, doctor_name_p: str):
+        list_key_days = await back_api.get_list_free_days(doc_token=token)
         if len(list_key_days):
-            buttons = get_hello_keyboard(self.text_config, list_key_days)
-            await self.view.send_message(chat_id, text, inline_buttons=buttons)
+            text = self.text_config.texts.start.format(str(doctor_name_p))
+            show_ember = False
+            if client.consulate:
+                if client.client_token:
+                    show_ember = True
+            buttons = get_hello_keyboard(self.text_config, show_ember, list_key_days)
+            await self.view.send_assistant_message(client.chat_id, text, inline_buttons=buttons)
         else:
-            await self.view.send_message(chat_id, self.text_config.texts.start_empty.format(str(doctor_name)))
+            text = self.text_config.texts.start_empty.format(str(doctor_name_p))
+            await self.view.send_assistant_message(client.chat_id, text)
 
-        self.client_repo.save_client(client)
+    async def _old_client(self, client: TelegramClient, refer_url_text: str = ''):
+        if client.consulate:
+            if client.consulate.cons_token:  # идет консультация
+                await self.view.send_assistant_message(client.chat_id, self.text_config.texts.sorry_dialog_now.format(
+                    client.consulate.select_day,
+                    client.consulate.select_time.split()[0],
+                    client.consulate.select_time.split()[1],
+                    client.doctor_name
+                ), doctor_n=client.doctor_name_p)
+                return
+        doctor_name, doctor_name_p, token = await _get_doctor_from_url(refer_url_text)
+        if doctor_name is not None:
+            await self.client_repo.set_client(client.user_id, chat_id=client.chat_id, status=State.start_first.value,
+                                              doctor_name=doctor_name, doc_token=token,
+                                              doctor_name_p=doctor_name_p)
+            await self._send_doctor_hello_message(client, token, doctor_name_p)
+        else:
+            await self._send_doctor_hello_message(client, client.doctor_token, client.doctor_name_p)
+
+    async def _new_client(self, chat_id: int, user_id: int, refer_url_text: str = ''):
+        doctor_name, doctor_name_p, token = await _get_doctor_from_url(refer_url_text)
+        if doctor_name is not None:
+            client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id, status=State.start_first.value,
+                                                       doctor_name=doctor_name, doc_token=token,
+                                                       doctor_name_p=doctor_name_p)
+            await self._send_doctor_hello_message(client, token, doctor_name_p)
+        else:
+            await self.view.send_assistant_message(chat_id, self.text_config.texts.error_token)
+
+    async def answer_on_start_command(self, chat_id: int, user_id: int, refer_url_text: str = '', username: str = '',
+                                      firstname: str = '', lastname: str = ''):
+        client = await self.client_repo.get_client(user_id)
+        if client is not None:
+            await self._old_client(client)
+        else:
+            await self._new_client(chat_id, user_id, refer_url_text)
 
     async def send_info(self, chat_id):
         text = self.text_config.texts.info
-        await self.view.send_message(chat_id, text)
+        await self.view.send_assistant_message(chat_id, text)
 
-    async def _send_reason_petition_or_phone_query(self, client, chat_id):
-        if client.is_memory_user:
-            await self.view.send_message(chat_id, self.text_config.texts.user_reason.format(client.consulate.name_otch),
-                                         doctor_n=client.doctor_name, close_markup=True)
-            client.state = State.await_reason_petition_text
+    async def _send_reason_petition_or_phone_query(self, client: TelegramClient, chat_id) -> TelegramClient:
+        if client.phone:
+            await self.view.send_assistant_message(chat_id,
+                                                   self.text_config.texts.user_reason.format(client.first_middle_name),
+                                                   doctor_n=client.doctor_name_p, close_markup=True)
+            client.status = State.await_reason_petition_text.value
         else:
             await self.view.send_phone_request(chat_id, self.text_config.texts.number,
-                                               doctor_name=client.doctor_name)
-            client.state = State.await_contacts
+                                               doctor_name=client.doctor_name_p)
+            client.status = State.await_contacts.value
+        return client
 
     async def answer_callback(self, chat_id: int, bot_message_id: int, user_id: int, callback_data: str):
-        client = self.client_repo.get_client_data(user_id)
+        client = await self.client_repo.get_client(user_id)
+        if client is None:
+            await self.answer_on_start_command(chat_id, user_id)
+            return
         button_object = ButtonCollection.from_callback(callback_data)
-        if button_object.type is ButtonCollection.start_button:
-            if client is not None:
-                client.consulate.day_value = button_object.label.lower()
-                list_times = back_api.get_list_free_times(day=button_object.data, doc_token=client.doc_token)
-                await self.view.edit_bot_message(chat_id,
-                                                 text=self.text_config.texts.set_cons_time.format(
-                                                     client.consulate.day_value),
-                                                 inline_buttons=get_start_button(list_times),
-                                                 message_id=bot_message_id)
+        if button_object.type is ButtonCollection.start_b:
+            client.consulate = await self.client_repo.new_consulate(user_id, chat_id)
+            client.consulate.select_day = button_object.label.lower()
+            list_times = await back_api.get_list_free_times(day=button_object.data, doc_token=client.doctor_token)
+            await self.view.edit_bot_message(chat_id,
+                                             text=self.text_config.texts.set_cons_time.format(
+                                                 client.consulate.select_day),
+                                             inline_buttons=get_start_button(list_times),
+                                             message_id=bot_message_id)
         if button_object.type is ButtonCollection.time_button:
-            if client is not None:
-                client.consulate.time_value = button_object.label.lower()
-                client.consulate.schedule_id = int(button_object.data)
-                buttons = get_change_time_cons_keyboard()
-                text = self.text_config.texts.cons.format(client.consulate.day_value, client.consulate.time_value)
-                await self.view.edit_bot_message(chat_id=chat_id, text=text, inline_buttons=buttons,
-                                                 message_id=bot_message_id)
-                await self._send_reason_petition_or_phone_query(client, chat_id)
-        if button_object.type is ButtonCollection.start_emergency_button:
-            if client is not None:
-                client.is_emergency = True
-                client.consulate.day_value = None
-                client.consulate.time_value = None
-                client.consulate.schedule_id = None
-                await self._send_reason_petition_or_phone_query(client, chat_id)
+            client.consulate.select_time = button_object.label.lower()
+            client.consulate.select_schedule_id = int(button_object.data)
+            buttons = get_change_time_cons_keyboard()
+            text = self.text_config.texts.cons.format(client.consulate.select_day, client.consulate.select_time)
+            await self.view.edit_bot_message(chat_id=chat_id, text=text, inline_buttons=buttons,
+                                             message_id=bot_message_id)
+            client = await self._send_reason_petition_or_phone_query(client, chat_id)
+        if button_object.type is ButtonCollection.start_emer_b:
+            client.consulate = await self.client_repo.new_consulate(user_id, chat_id)
+            client.consulate.select_is_emergency = True
+            client = await self._send_reason_petition_or_phone_query(client, chat_id)
         if button_object.type is ButtonCollection.back_main:
-            if client is not None:
-                await self.view.delete_message(chat_id, bot_message_id)
-                await self.view.delete_message(chat_id, bot_message_id + 1)
-                await self.send_start_message(chat_id, user_id)
-        self.client_repo.save_client(client)
+            await self.view.delete_message(chat_id, bot_message_id)
+            await self.view.delete_message(chat_id, bot_message_id + 1)
+            await self.answer_on_start_command(chat_id, user_id)
+        if button_object.type is ButtonCollection.recommend_friends:
+            await self.view.send_vcard(chat_id=chat_id, doctor_name=client.doctor_name, doc_token=client.doctor_token)
+        if button_object.type is ButtonCollection.new_query:
+            client.status = State.start_first.value
+            await self.answer_on_start_command(chat_id, user_id)
+        await self.client_repo.save_client(client)
 
     async def reset_user(self, chat_id: int, user_id: int):
-        client = self.client_repo.get_client_data(user_id)
-        self.client_repo.set_client(user_id, client.doctor_name, client.doc_token)
-        self.client_repo.save_client(client)
-        await self.view.send_message(chat_id, 'Пользователь обновлен')
+        # client = self.client_repo.get_client(user_id)
+        # self.client_repo.set_client(user_id, client.doctor_name, client.doctor_token)
+        # self.client_repo.save_client(client)
+        await self.view.send_assistant_message(chat_id, 'Пользователь обновлен')
 
     async def answer_on_contacts(self, chat_id: int, user_id: int, phone_text: str):
-        client = self.client_repo.get_client_data(user_id)
+        client = await self.client_repo.get_client(user_id)
         if client is not None:
-            client.consulate.number = phone_text
-            await self.view.send_message(chat_id, self.text_config.texts.reason, doctor_n=client.doctor_name,
-                                         close_markup=True)
-            client.state = State.await_reason_petition_text
-        self.client_repo.save_client(client)
+            client.phone = phone_text
+            await self.view.send_assistant_message(chat_id, self.text_config.texts.reason, doctor_n=client.doctor_name,
+                                                   close_markup=True)
+            client.status = State.await_reason_petition_text.value
+        await self.client_repo.save_client(client)
 
-    async def _finish(self, chat_id, client):
-        if not client.is_emergency:
-            send_text = self.text_config.texts.finish.format(client.consulate.day_value.lower(),
-                                                             client.consulate.time_value.lower())
+    async def _finish(self, chat_id, client: TelegramClient) -> TelegramClient:
+        if not client.consulate.select_is_emergency:
+            send_text = self.text_config.texts.finish.format(
+                client.consulate.select_day,
+                client.consulate.select_time.split()[0],
+                client.consulate.select_time.split()[1])
         else:
             send_text = self.text_config.texts.finish_emb
-        await self.view.send_message(chat_id, text=send_text, doctor_n=client.doctor_name)
+        res = await back_api.create_consulate(chat_id, client=client)
+        if res:
+            await self.view.send_assistant_message(chat_id, text=send_text, doctor_n=client.doctor_name)
 
-        dialog_id = await back_api.create_dialog(chat_id, client=client)
-        client.is_memory_user = True
-        if dialog_id is not None:
-            client.dialog_id = dialog_id
-            client.state = State.dialog
+            dialog_id, cons_token = res
+            if dialog_id is not None:
+                client.dialog_id = dialog_id
+                client.consulate.cons_token = cons_token
+                client.status = State.dialog.value
         else:
+            await self.view.send_assistant_message(chat_id, text=self.text_config.texts.error_create_cons,
+                                                   doctor_n=client.doctor_name)
             pass  ######### нужно потом написать ответ если диалог не создался 29.11.21
+        return client
 
     async def answer_on_any_message(self, chat_id, user_id, text):
-        client = self.client_repo.get_client_data(user_id)
+        client = await self.client_repo.get_client(user_id)
         if client is None:
-            await self.send_start_message(chat_id, user_id)
+            await self.answer_on_start_command(chat_id, user_id)
             return
-        if client.state is State.start_first:
-            await self.send_start_message(chat_id, user_id)
-        if client.state is State.await_contacts:
-            if is_number(text):
-                client.state = State.dialog
-                await self.answer_on_contacts(chat_id, user_id, phone_text=text)
-            else:
-                await self.view.send_message(chat_id, text=self.text_config.texts.number_error,
-                                             doctor_n=client.doctor_name)
-        elif client.state is State.await_reason_petition_text:
-            client.consulate.reason_petition = text
-            if client.is_memory_user:
-                await self._finish(chat_id, client)
-            else:
-                await self.view.send_message(chat_id, text=self.text_config.texts.name_otch,
-                                             doctor_n=client.doctor_name)
-                client.state = State.await_name_otch_text
+        else:
+            if client.status is State.start_first.value:
+                await self.answer_on_start_command(chat_id, user_id)
+                return
+            if client.status is State.await_contacts.value:
+                if is_number(text):
+                    client.status = State.dialog.value
+                    await self.answer_on_contacts(chat_id, user_id, phone_text=text)
+                else:
+                    await self.view.send_assistant_message(chat_id, text=self.text_config.texts.number_error,
+                                                           doctor_n=client.doctor_name)
+            elif client.status is State.await_reason_petition_text.value:
+                client.consulate.reason_petition = text
+                if client.first_middle_name:
+                    client = await self._finish(chat_id, client)
+                else:
+                    await self.view.send_assistant_message(chat_id, text=self.text_config.texts.name_otch,
+                                                           doctor_n=client.doctor_name)
+                    client.status = State.await_name_otch_text.value
 
-        elif client.state is State.await_name_otch_text:
-            client.consulate.name_otch = text
-            client.state = State.await_birthday_text
-            await self.view.send_message(chat_id, text=self.text_config.texts.birthdate, doctor_n=client.doctor_name)
-        elif client.state is State.await_birthday_text:
-            birthday = get_birthday(text)
-            if birthday:
-                client.consulate.age = birthday
-                await self._finish(chat_id, client)
-            else:
-                await self.view.send_message(chat_id, text=self.text_config.texts.birthdate_error,
-                                             doctor_n=client.doctor_name)
+            elif client.status is State.await_name_otch_text.value:
+                client.first_middle_name = text
+                client.status = State.await_birthday_text.value
+                await self.view.send_assistant_message(chat_id, text=self.text_config.texts.birthdate,
+                                                       doctor_n=client.doctor_name)
+            elif client.status is State.await_birthday_text.value:
+                birthday = get_birthday(text)
+                if birthday:
+                    client.age = birthday
+                    client = await self._finish(chat_id, client)
+                else:
+                    await self.view.send_assistant_message(chat_id, text=self.text_config.texts.birthdate_error,
+                                                           doctor_n=client.doctor_name)
 
-        elif client.state is State.dialog:
-            if client.dialog_id is not None:
-                is_send = back_api.send_patient_text_message(text=text, dialog_id=client.dialog_id)
-                if not is_send:
-                    pass  ## нужно написать ответ бота если сообщение не отправлено 29.11.2021
-        self.client_repo.save_client(client)
-
-
-def get_refer(text) -> Optional[str]:
-    if ' ' in text:
-        try:
-            ref_str = text.split(' ')[1]
-
-            return ref_str
-        except IndexError:
-            logging.warning(f'BAD REFERRAL URL: {text}')
-            return None
-    return None
+            elif client.status is State.dialog.value:
+                if client.consulate.dialog_id is not None:
+                    is_send = back_api.send_patient_text_message(text=text, dialog_id=client.consulate.dialog_id)
+                    if not is_send:
+                        pass  ## нужно написать ответ бота если сообщение не отправлено 29.11.2021
+            await self.client_repo.save_client(client)
