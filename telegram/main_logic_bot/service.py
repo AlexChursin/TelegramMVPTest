@@ -1,3 +1,5 @@
+from typing import Optional
+
 import sentry_sdk
 
 from backend_api import back_api
@@ -30,8 +32,9 @@ class BotService:
         self.text_config: TextBot = text_config
         self.client_repo: IClientRepo = client_repo
 
-    async def _send_doctor_hello_message(self, client: TelegramClient, token: str, doctor_name_p: str):
+    async def _send_doctor_hello_message(self, client: TelegramClient, token: str, doctor_name_p: str, edit: bool = False, message_id: Optional[int]= None):
         list_key_days = await back_api.get_list_free_days(doc_token=token)
+        buttons = None
         if len(list_key_days):
             text = self.text_config.texts.start.format(str(doctor_name_p))
             show_ember = False
@@ -39,10 +42,12 @@ class BotService:
                 if client.client_token:
                     show_ember = True
             buttons = get_hello_keyboard(self.text_config, show_ember, list_key_days)
-            await self.view.send_assistant_message(client.chat_id, text, inline_buttons=buttons)
         else:
             text = self.text_config.texts.start_empty.format(str(doctor_name_p))
-            await self.view.send_assistant_message(client.chat_id, text)
+        if not edit:
+            await self.view.send_assistant_message(client.chat_id, text, inline_buttons=buttons)
+        else:
+            await self.view.edit_bot_message(client.chat_id, text, message_id=message_id, inline_buttons=buttons)
 
     async def _old_client(self, client: TelegramClient, refer_url_text: str = ''):
         if client.consulate:
@@ -120,6 +125,8 @@ class BotService:
             await self.view.edit_bot_message(chat_id=chat_id, text=text, inline_buttons=buttons,
                                              message_id=bot_message_id)
             client = await self._send_reason_petition_or_phone_query(client, chat_id)
+        if button_object.type is ButtonCollection.main_menu:
+            await self._send_doctor_hello_message(client, client.doctor_token, client.doctor_name_p, edit=True, message_id=bot_message_id)
         if button_object.type is ButtonCollection.start_emer_b:
             client.consulate = await self.client_repo.new_consulate(user_id, chat_id)
             client.consulate.select_is_emergency = True
