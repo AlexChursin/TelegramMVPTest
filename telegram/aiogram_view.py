@@ -15,13 +15,13 @@ from typing import List, Optional
 class TelegramView(IView):
     async def send_vcard(self, chat_id: int, doctor_name: str, doc_token: str):
         await self._bot.send_contact(chat_id, phone_number='+11111111111', first_name=doctor_name.split()[0],
-                                     last_name=doctor_name.split()[0],
+                                     last_name=doctor_name.split()[1],
                                      vcard="BEGIN:VCARD\n" +
                                            "VERSION:3.0\n" +
                                            "N:Solo;Han\n" +
                                            # "ORG:Организация ассистент\n" +
                                            f"URL:https://t.me/{BOT_NAME}?start=doc_{doc_token}\n"
-                                           "TEL;TYPE=voice,work,pref:+111111111111\n" +
+                                          "TEL;TYPE=celular:*\n" +
                                            # "EMAIL:hansolo@mfalcon.com\n" +
                                            "END:VCARD")
 
@@ -43,8 +43,8 @@ class TelegramView(IView):
         await self._bot.delete_message(chat_id, message_id=message_id)
 
     @staticmethod
-    def __get_markup(inline_buttons: List[InlineViewButton], close_markup: bool = False) -> InlineKeyboardMarkup:
-        markup = types.ReplyKeyboardRemove() if close_markup else None
+    def __get_markup(inline_buttons: List[InlineViewButton]) -> Optional[InlineKeyboardMarkup]:
+        markup = None
 
         if inline_buttons is not None:
             markup = types.InlineKeyboardMarkup(row_width=1)
@@ -62,7 +62,7 @@ class TelegramView(IView):
                                           parse_mode='HTML')
 
     async def send_phone_request(self, chat_id: int, text: str, doctor_name: str):
-        markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+        markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True, one_time_keyboard=True)
         markup.add(types.KeyboardButton(text='Передать номер телефона', request_contact=True))
         if doctor_name is not None:
             text = f'Ассистент <b>{doctor_name}:</b>\n{text}'
@@ -73,7 +73,7 @@ class TelegramView(IView):
                                      inline_buttons: List[InlineViewButton] = None,
                                      close_markup: bool = False):
         print(chat_id)
-        markup = self.__get_markup(inline_buttons, close_markup)
+        markup = self.__get_markup(inline_buttons)
         if doctor_n is not None:
             text = f'Ассистент <b>{doctor_n}:</b>\n{text}'
         await self._bot.send_message(chat_id, text=text, reply_markup=markup, parse_mode='HTML')

@@ -10,9 +10,7 @@ from telegram.main_logic_bot.client_repo.user_bot_state import State
 async def finish_consulate(dialog_id: int, text: str, doctor_name: Optional[str]) -> Optional[int]:
     consulate = await mess_api.get_consulate(dialog_id)
     buttons = [InlineViewButton(MyButton(label='Рекомендуем', data='r', type_value=ButtonCollection.recommend_friends.value).to_callback(), text='Рекомендуем друзьям'),
-               InlineViewButton(MyButton(label='Новый', data='new',
-                                         type_value=ButtonCollection.new_query.value).to_callback(),
-                                text='Новый запрос')]
+               InlineViewButton(MyButton(label='Новый', data='new', type_value=ButtonCollection.new_query.value).to_callback(), text='Новый запрос')]
 
     if consulate:
         if consulate.chat_id is not None:

@@ -13,6 +13,7 @@ class ButtonCollection(AutoName):
     start_emer_b = auto()
     time_button = auto()
     back_main = auto()
+    main_menu = auto()
     recommend_friends = auto()
     new_query = auto()
 

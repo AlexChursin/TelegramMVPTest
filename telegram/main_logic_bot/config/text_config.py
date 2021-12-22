@@ -24,6 +24,7 @@ class Texts(BaseModel):
     number_error: str
     finish: str
     finish_emb: str
+    recommend_friend: str
     sorry_dialog_now: str
     error_token: str
     error_create_cons: str

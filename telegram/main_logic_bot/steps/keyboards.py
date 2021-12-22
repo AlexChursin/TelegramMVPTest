@@ -26,9 +26,10 @@ def get_change_time_cons_keyboard():
     return buttons
 
 
-def get_start_button(list_times: List[Schedule]):
-    return [InlineViewButton(text=str(value.time),
-                             callback=MyButton(label=value.time, data=str(value.id),
-                                               type_value=ButtonCollection.time_button.value).to_callback()) for
-            value in list_times]
-
+def get_time_buttons(list_times: List[Schedule]):
+    buttons = [InlineViewButton(text=str(value.time),
+                                callback=MyButton(label=value.time, data=str(value.id),
+                                                  type_value=ButtonCollection.time_button.value).to_callback()) for
+               value in list_times]
+    buttons.append(InlineViewButton(text='Назад', callback=MyButton(label='menu', data='b', type_value=ButtonCollection.main_menu.value).to_callback()))
+    return buttons
