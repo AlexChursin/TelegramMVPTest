@@ -51,7 +51,7 @@ class API:
                     json = await r.json()
                     if r.status == HTTPStatus.OK:
                         res = await r.json()
-                        return res['data']['dialog_id'], res['data']['cons_token']
+                        return res['data']['dialog_id'], res['data']['cons_token'], res['data']['patient_token']
                     return None
         except Exception as e:
             print(e)

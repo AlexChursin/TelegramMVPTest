@@ -162,11 +162,11 @@ class BotService:
         if res:
             await self.view.send_assistant_message(chat_id, text=send_text, doctor_n=client.doctor_name)
 
-            dialog_id, cons_token = res
-            if dialog_id is not None:
-                client.dialog_id = dialog_id
-                client.consulate.cons_token = cons_token
-                client.status = State.dialog.value
+            dialog_id, cons_token, client_token = res
+            client.consulate.dialog_id = dialog_id
+            client.consulate.cons_token = cons_token
+            client.client_token = client_token
+            client.status = State.dialog.value
         else:
             await self.view.send_assistant_message(chat_id, text=self.text_config.texts.error_create_cons,
                                                    doctor_n=client.doctor_name)
