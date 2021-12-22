@@ -16,11 +16,7 @@ async def finish_consulate(dialog_id: int, text: str, doctor_name: Optional[str]
 
     if consulate:
         if consulate.chat_id is not None:
-            if doctor_name:
-                await tg_view.send_message_doctor(chat_id=consulate.chat_id, text=text, doctor_name=doctor_name)
-            else:
-                consulate = await mess_api.get_consulate(dialog_id)
-                await tg_view.send_assistant_message(chat_id=consulate.chat_id, text=text, doctor_n=doctor_name, inline_buttons=buttons)
+            await tg_view.send_assistant_message(chat_id=consulate.chat_id, text=text, doctor_n=doctor_name, inline_buttons=buttons)
 
             client = await mess_api.get_client(consulate.user_id)
             client.status = State.start_first.value

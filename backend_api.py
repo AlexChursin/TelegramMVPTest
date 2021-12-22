@@ -25,7 +25,7 @@ class API:
         else:
             return None
 
-    async def create_consulate(self, chat_id: int, client: TelegramClient, ) -> Optional[Tuple[int, str]]:
+    async def create_consulate(self, chat_id: int, client: TelegramClient, ) -> Optional[Tuple[int, str, str]]:
         """
         :return:Id диалога и токен клиента
         """
@@ -48,7 +48,7 @@ class API:
 
             async with aiohttp.ClientSession() as session:
                 async with session.post(f'{self.url}/consultation', json=body) as r:
-                    json = await r.json()
+                    json = await r.json() # debug
                     if r.status == HTTPStatus.OK:
                         res = await r.json()
                         return res['data']['dialog_id'], res['data']['cons_token'], res['data']['patient_token']
