@@ -31,5 +31,16 @@ def get_time_buttons(list_times: List[Schedule]):
                                 callback=MyButton(label=value.time, data=str(value.id),
                                                   type_value=ButtonCollection.time_button.value).to_callback()) for
                value in list_times]
-    buttons.append(InlineViewButton(text='Назад', callback=MyButton(label='menu', data='b', type_value=ButtonCollection.main_menu.value).to_callback()))
+    buttons.append(InlineViewButton(text='Назад', callback=MyButton(label='menu', data='b',
+                                                                    type_value=ButtonCollection.main_menu.value).to_callback()))
+    return buttons
+
+
+def get_finish_buttons():
+    buttons = [InlineViewButton(
+        MyButton(label='Рекомендуем', data='r', type_value=ButtonCollection.recommend_friends.value).to_callback(),
+        text='Рекомендуем друзьям'),
+               InlineViewButton(
+                   MyButton(label='Новый', data='new', type_value=ButtonCollection.new_query.value).to_callback(),
+                   text='Новый запрос')]
     return buttons
