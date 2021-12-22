@@ -77,7 +77,7 @@ class API:
                     data = res['data'][day]
                     _format = '%H:%M'
                     _list_time = [datetime.fromisoformat(val['date'][:-1]) for val in data]
-                    list_times = [f'{(time + timedelta(hours=1)).strftime(_format)} {time.strftime(_format)}' for time in _list_time]
+                    list_times = [f'{time.strftime(_format)} {(time + timedelta(hours=1)).strftime(_format)}' for time in _list_time]
                     return [Schedule(id=val['id'], time=list_times[i]) for i, val in enumerate(data)]
         return []
 
