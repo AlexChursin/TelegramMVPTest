@@ -136,6 +136,8 @@ class BotService:
             client.consulate.select_is_emergency = True
             client = await self._send_reason_petition_or_phone_query(client, chat_id)
         if button_object.type is ButtonCollection.back_main:
+            client.consulate = None
+            await self.client_repo.save_client(client)
             await self.view.delete_message(chat_id, bot_message_id)
             await self.view.delete_message(chat_id, bot_message_id + 1)
             await self.answer_on_start_command(chat_id, user_id)
