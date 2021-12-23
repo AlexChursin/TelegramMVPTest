@@ -39,9 +39,8 @@ class BotService:
         if len(list_key_days):
             text = self.text_config.texts.start.format(str(doctor_name_p))
             show_ember = False
-            if client.consulate:
-                if client.client_token:
-                    show_ember = True
+            if client.client_token and not client.consulate:
+                show_ember = True
             buttons = get_hello_keyboard(self.text_config, show_ember, list_key_days)
         else:
             text = self.text_config.texts.start_empty.format(str(doctor_name_p))
