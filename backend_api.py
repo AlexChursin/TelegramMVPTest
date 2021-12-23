@@ -62,7 +62,7 @@ class API:
                         res = await r.json()
                         return res['data']['dialog_id'], res['data']['cons_token'], res['data']['patient_token']
                     else:
-                        logging.error(str(json))
+                        logging.error(f'body: {body}, {json}')
                     return None
         except Exception as e:
             logging.error(e)
