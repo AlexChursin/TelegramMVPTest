@@ -13,7 +13,7 @@ from .config.text_config import TextBot
 from .service_funcs import _get_doctor_from_url
 from .steps.keyboards import get_hello_keyboard, get_change_time_cons_keyboard, get_time_buttons, \
     get_finish_cons_buttons, get_button_new_con
-from ..utils import is_number, get_birthday
+from ..utils import is_number, get_birthday, fix_number
 
 
 def traces_sampler(sampling_context):
@@ -198,7 +198,7 @@ class BotService:
             if client.status is State.await_contacts.value:
                 if is_number(text):
                     client.status = State.dialog.value
-                    await self.answer_on_contacts(chat_id, user_id, phone_text=text)
+                    await self.answer_on_contacts(chat_id, user_id, phone_text=fix_number(text))
                 else:
                     await self.view.send_assistant_message(chat_id, text=self.text_config.texts.number_error,
                                                            doctor_n=client.doctor_name)

@@ -8,6 +8,14 @@ def is_number(text: str) -> bool:
     return pattern.match(text) is not None
 
 
+def fix_number(text: str) -> str:
+    if text.startswith('7'):
+        text = '+' + text
+    elif text.startswith('8'):
+        text = '+7' + text[1:]
+    return text
+
+
 def get_birthday(text: str) -> Optional[str]:
     try:
         int_v = int(text)
