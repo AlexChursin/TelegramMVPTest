@@ -41,7 +41,8 @@ class API:
                     "first_name": first_name,
                     "middle_name": middle_name,
                     "age": client.age,
-                    "phone": client.phone
+                    "phone": client.phone,
+                    "schedule_id": client.consulate.select_schedule_id
                 }
             else:
                 body = {
@@ -51,8 +52,8 @@ class API:
                     "reason": client.consulate.reason_petition,
                     "patient_token": client.client_token,
                 }
-            if not client.consulate.select_is_emergency:
-                body['schedule_id'] = client.consulate.select_schedule_id
+                if not client.consulate.select_is_emergency:
+                    body['schedule_id'] = client.consulate.select_schedule_id
 
             async with aiohttp.ClientSession() as session:
                 async with session.post(f'{self.url}/consultation', json=body) as r:
