@@ -157,7 +157,7 @@ class BotService:
     async def answer_on_contacts(self, chat_id: int, user_id: int, phone_text: str):
         client = await self.client_repo.get_client(user_id)
         if client is not None:
-            client.phone = phone_text
+            client.phone = fix_number(phone_text)
             await self.view.send_assistant_message(chat_id, self.text_config.texts.reason, doctor_n=client.doctor_name)
             client.status = State.await_reason_petition_text.value
         await self.client_repo.save_client(client)
@@ -198,7 +198,7 @@ class BotService:
             if client.status is State.await_contacts.value:
                 if is_number(text):
                     client.status = State.dialog.value
-                    await self.answer_on_contacts(chat_id, user_id, phone_text=fix_number(text))
+                    await self.answer_on_contacts(chat_id, user_id, phone_text=text)
                 else:
                     await self.view.send_assistant_message(chat_id, text=self.text_config.texts.number_error,
                                                            doctor_n=client.doctor_name)
