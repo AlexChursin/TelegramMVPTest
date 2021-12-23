@@ -52,7 +52,7 @@ class BotService:
     async def _old_client(self, client: TelegramClient, refer_url_text: str = ''):
         if client.consulate:
             if client.consulate.cons_token:  # идет консультация
-                if not client.consulate.is_embergency:
+                if not client.consulate.select_is_emergency:
                     await self.view.send_assistant_message(client.chat_id, self.text_config.texts.sorry_dialog_now.format(
                         client.consulate.select_day,
                         client.consulate.select_time.split()[0],
