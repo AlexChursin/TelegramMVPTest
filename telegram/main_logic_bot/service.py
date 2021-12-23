@@ -228,6 +228,9 @@ class BotService:
                 if text == self.text_config.buttons.reject_consulate:
                     await back_api.send_reject_cons(client.client_token, client.consulate.cons_token)
                     await self.view.send_assistant_message(chat_id, text=self.text_config.texts.reject_consulate, close_buttons=True)
+                    client.status = State.start_first.value
+                    client.consulate = None
+                    await self._send_doctor_hello_message(client, client.doctor_token, client.doctor_name_p)
                 else:
                     if client.consulate.dialog_id is not None:
                         is_send = await back_api.send_patient_text_message(text=text, dialog_id=client.consulate.dialog_id)
