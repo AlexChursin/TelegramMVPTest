@@ -53,15 +53,17 @@ class BotService:
         if client.consulate:
             if client.consulate.cons_token:  # идет консультация
                 if not client.consulate.select_is_emergency:
-                    await self.view.send_assistant_message(client.chat_id, self.text_config.texts.sorry_dialog_now.format(
-                        client.consulate.select_day,
-                        client.consulate.select_time.split()[0],
-                        client.consulate.select_time.split()[1],
-                        client.doctor_name
-                    ), doctor_n=client.doctor_name_p)
+                    await self.view.send_assistant_message(client.chat_id,
+                                                           self.text_config.texts.sorry_dialog_now.format(
+                                                               client.consulate.select_day,
+                                                               client.consulate.select_time.split()[0],
+                                                               client.consulate.select_time.split()[1],
+                                                               client.doctor_name
+                                                           ), doctor_n_p=client.doctor_name_p)
                 else:
-                    await self.view.send_assistant_message(client.chat_id, self.text_config.texts.sorry_dialog_now_emer.format(
-                        client.doctor_name), doctor_n=client.doctor_name_p)
+                    await self.view.send_assistant_message(client.chat_id,
+                                                           self.text_config.texts.sorry_dialog_now_emer.format(
+                                                               client.doctor_name), doctor_n_p=client.doctor_name_p)
                 return
         doctor_name, doctor_name_p, token = await _get_doctor_from_url(refer_url_text)
         if doctor_name is not None:
@@ -98,7 +100,7 @@ class BotService:
         if client.phone:
             await self.view.send_assistant_message(chat_id,
                                                    self.text_config.texts.user_reason.format(client.first_middle_name),
-                                                   doctor_n=client.doctor_name_p)
+                                                   doctor_n_p=client.doctor_name_p)
             client.status = State.await_reason_petition_text.value
         else:
             await self.view.send_phone_request(chat_id, self.text_config.texts.number,
@@ -141,7 +143,9 @@ class BotService:
             await self.view.delete_message(chat_id, bot_message_id + 1)
             await self.answer_on_start_command(chat_id, user_id)
         if button_object.type is ButtonCollection.recommend_friends:
-            await self.view.send_assistant_message(chat_id=chat_id, text=self.text_config.texts.recommend_friend, doctor_n=client.doctor_name, buttons=get_button_new_con(self.text_config.buttons.new_cons))
+            await self.view.send_assistant_message(chat_id=chat_id, text=self.text_config.texts.recommend_friend,
+                                                   doctor_n_p=client.doctor_name_p,
+                                                   buttons=get_button_new_con(self.text_config.buttons.new_cons))
             await self.view.send_vcard(chat_id=chat_id, doctor_name=client.doctor_name, doc_token=client.doctor_token)
         if button_object.type is ButtonCollection.new_query:
             client.status = State.start_first.value
@@ -158,7 +162,8 @@ class BotService:
         client = await self.client_repo.get_client(user_id)
         if client is not None:
             client.phone = fix_number(phone_text)
-            await self.view.send_assistant_message(chat_id, self.text_config.texts.reason, doctor_n=client.doctor_name)
+            await self.view.send_assistant_message(chat_id, self.text_config.texts.reason,
+                                                   doctor_n_p=client.doctor_name_p)
             client.status = State.await_reason_petition_text.value
         await self.client_repo.save_client(client)
 
@@ -172,8 +177,9 @@ class BotService:
             send_text = self.text_config.texts.finish_emb
         res = await back_api.create_consulate(chat_id, client=client)
         if res:
-            await self.view.send_assistant_message(chat_id, text=send_text, doctor_n=client.doctor_name,
-                                                   buttons=get_finish_cons_buttons(self.text_config.buttons.reject_consulate))
+            await self.view.send_assistant_message(chat_id, text=send_text, doctor_n_p=client.doctor_name_p,
+                                                   buttons=get_finish_cons_buttons(
+                                                       self.text_config.buttons.reject_consulate))
 
             dialog_id, cons_token, client_token = res
             client.consulate.dialog_id = dialog_id
@@ -182,7 +188,7 @@ class BotService:
             client.status = State.dialog.value
         else:
             await self.view.send_assistant_message(chat_id, text=self.text_config.texts.error_create_cons,
-                                                   doctor_n=client.doctor_name)
+                                                   doctor_n_p=client.doctor_name_p)
             pass  ######### нужно потом написать ответ если диалог не создался 29.11.21
         return client
 
@@ -201,21 +207,21 @@ class BotService:
                     await self.answer_on_contacts(chat_id, user_id, phone_text=text)
                 else:
                     await self.view.send_assistant_message(chat_id, text=self.text_config.texts.number_error,
-                                                           doctor_n=client.doctor_name)
+                                                           doctor_n_p=client.doctor_name_p)
             elif client.status is State.await_reason_petition_text.value:
                 client.consulate.reason_petition = text
                 if client.first_middle_name:
                     client = await self._finish(chat_id, client)
                 else:
                     await self.view.send_assistant_message(chat_id, text=self.text_config.texts.name_otch,
-                                                           doctor_n=client.doctor_name)
+                                                           doctor_n_p=client.doctor_name_p)
                     client.status = State.await_name_otch_text.value
 
             elif client.status is State.await_name_otch_text.value:
                 client.first_middle_name = text
                 client.status = State.await_birthday_text.value
                 await self.view.send_assistant_message(chat_id, text=self.text_config.texts.birthdate,
-                                                       doctor_n=client.doctor_name)
+                                                       doctor_n_p=client.doctor_name_p)
             elif client.status is State.await_birthday_text.value:
                 birthday = get_birthday(text)
                 if birthday:
@@ -223,12 +229,13 @@ class BotService:
                     client = await self._finish(chat_id, client)
                 else:
                     await self.view.send_assistant_message(chat_id, text=self.text_config.texts.birthdate_error,
-                                                           doctor_n=client.doctor_name)
+                                                           doctor_n_p=client.doctor_name_p)
 
             elif client.status is State.dialog.value:
                 if text == self.text_config.buttons.reject_consulate:
                     await back_api.send_reject_cons(client.client_token, client.consulate.cons_token)
-                    await self.view.send_assistant_message(chat_id, text=self.text_config.texts.reject_consulate, close_buttons=True)
+                    await self.view.send_assistant_message(chat_id, text=self.text_config.texts.reject_consulate,
+                                                           close_buttons=True)
                     client.status = State.start_first.value
                     client.consulate = None
                     await self._send_doctor_hello_message(client, client.doctor_token, client.doctor_name_p)

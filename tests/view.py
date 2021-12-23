@@ -11,8 +11,8 @@ class Answers:
 
 class TestView(IView):
 
-    async def send_assistant_message(self, chat_id: int, text: str, doctor_n: Optional[str] = None,
-                                     inline_buttons: List[InlineViewButton] = None, close_markup: bool = False):
+    async def send_assistant_message(self, chat_id: int, text: str, doctor_n_p: Optional[str] = None,
+                                     inline_buttons: List[InlineViewButton] = None, buttons: bool = None:
         Answers.last = text
 
     async def send_message_doctor(self, chat_id: int, text: str, doctor_name: str):

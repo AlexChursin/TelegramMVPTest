@@ -76,14 +76,13 @@ class TelegramView(IView):
             text = f'Ассистент <b>{doctor_name}:</b>\n{text}'
         await self._bot.send_message(chat_id, text=text, reply_markup=markup, parse_mode='HTML')
 
-    async def send_assistant_message(self, chat_id: int, text: str,
-                                     doctor_n: Optional[str] = None,
-                                     inline_buttons: List[InlineViewButton] = None,
-                                     buttons: List[ViewButton] = None, close_buttons: bool = False):
+    async def send_assistant_message(self, chat_id: int, text: str, doctor_n_p: Optional[str] = None,
+                                     inline_buttons: List[InlineViewButton] = None, buttons: List[ViewButton] = None,
+                                     close_buttons: bool = False):
         print(chat_id)
         markup = self.__get_markup(inline_buttons, buttons, close_buttons)
-        if doctor_n is not None:
-            text = f'Ассистент <b>{doctor_n}:</b>\n{text}'
+        if doctor_n_p is not None:
+            text = f'Ассистент <b>{doctor_n_p}:</b>\n{text}'
         await self._bot.send_message(chat_id, text=text, reply_markup=markup, parse_mode='HTML')
 
 
