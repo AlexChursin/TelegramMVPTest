@@ -55,7 +55,7 @@ class API:
                         return res['data']['dialog_id'], res['data']['cons_token'], res['data']['patient_token']
                     return None
         except Exception as e:
-            print(e)
+            logging.error(e)
         return None
 
     async def get_list_free_days(self, doc_token: str) -> List[str]:
