@@ -52,12 +52,16 @@ class BotService:
     async def _old_client(self, client: TelegramClient, refer_url_text: str = ''):
         if client.consulate:
             if client.consulate.cons_token:  # идет консультация
-                await self.view.send_assistant_message(client.chat_id, self.text_config.texts.sorry_dialog_now.format(
-                    client.consulate.select_day,
-                    client.consulate.select_time.split()[0],
-                    client.consulate.select_time.split()[1],
-                    client.doctor_name
-                ), doctor_n=client.doctor_name_p)
+                if not client.consulate.is_embergency:
+                    await self.view.send_assistant_message(client.chat_id, self.text_config.texts.sorry_dialog_now.format(
+                        client.consulate.select_day,
+                        client.consulate.select_time.split()[0],
+                        client.consulate.select_time.split()[1],
+                        client.doctor_name
+                    ), doctor_n=client.doctor_name_p)
+                else:
+                    await self.view.send_assistant_message(client.chat_id, self.text_config.texts.sorry_dialog_now_emer.format(
+                        client.doctor_name), doctor_n=client.doctor_name_p)
                 return
         doctor_name, doctor_name_p, token = await _get_doctor_from_url(refer_url_text)
         if doctor_name is not None:
