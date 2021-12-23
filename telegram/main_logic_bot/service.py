@@ -12,7 +12,7 @@ from .client_repo.user_bot_state import State
 from .config.text_config import TextBot
 from .service_funcs import _get_doctor_from_url
 from .steps.keyboards import get_hello_keyboard, get_change_time_cons_keyboard, get_time_buttons, \
-    get_finish_cons_buttons
+    get_finish_cons_buttons, get_button_new_con
 from ..utils import is_number, get_birthday
 
 
@@ -141,7 +141,7 @@ class BotService:
             await self.view.delete_message(chat_id, bot_message_id + 1)
             await self.answer_on_start_command(chat_id, user_id)
         if button_object.type is ButtonCollection.recommend_friends:
-            await self.view.send_assistant_message(chat_id=chat_id, text=self.text_config.texts.recommend_friend, doctor_n=client.doctor_name)
+            await self.view.send_assistant_message(chat_id=chat_id, text=self.text_config.texts.recommend_friend, doctor_n=client.doctor_name, buttons=get_button_new_con(self.text_config.buttons.new_cons))
             await self.view.send_vcard(chat_id=chat_id, doctor_name=client.doctor_name, doc_token=client.doctor_token)
         if button_object.type is ButtonCollection.new_query:
             client.status = State.start_first.value

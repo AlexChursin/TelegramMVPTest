@@ -31,6 +31,11 @@ def get_finish_cons_buttons(label: str):
     return buttons
 
 
+def get_button_new_con(label: str):
+    buttons = [ViewButton(text=label)]
+    return buttons
+
+
 
 def get_time_buttons(list_times: List[Schedule]):
     buttons = [InlineViewButton(text=str(value.time),

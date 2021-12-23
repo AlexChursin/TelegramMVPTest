@@ -38,6 +38,7 @@ class Buttons(BaseModel):
     start_button_emergency: str
     change_time_cons: str
     reject_consulate: str
+    new_cons: str
 
 
 class TextBot(BaseModel):
