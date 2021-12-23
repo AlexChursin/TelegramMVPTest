@@ -53,7 +53,7 @@ class API:
                     "patient_token": client.client_token,
                 }
                 if not client.consulate.select_is_emergency:
-                    body['schedule_id'] = client.consulate.select_schedule_id
+                    body['schedule_id'] = int(client.consulate.select_schedule_id)
 
             async with aiohttp.ClientSession() as session:
                 async with session.post(f'{self.url}/consultation', json=body) as r:
