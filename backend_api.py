@@ -42,9 +42,9 @@ class API:
                 "age": client.age,
                 "phone": client.phone
             }
-            if client.consulate.select_is_emergency and client.client_token:
+            if client.client_token:
                 body['patient_token'] = client.client_token
-            else:
+            if not client.consulate.select_is_emergency:
                 body['schedule_id'] = client.consulate.select_schedule_id
 
             async with aiohttp.ClientSession() as session:
