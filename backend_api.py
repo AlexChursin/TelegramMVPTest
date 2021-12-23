@@ -32,18 +32,25 @@ class API:
         """
         try:
             first_name, middle_name = client.first_middle_name.split()
-            body = {
-                "doc_token": client.doctor_token,
-                "session_uid": str(chat_id),
-                "platform": 2,
-                "reason": client.consulate.reason_petition,
-                "first_name": first_name,
-                "middle_name": middle_name,
-                "age": client.age,
-                "phone": client.phone
-            }
-            if client.client_token:
-                body['patient_token'] = client.client_token
+            if not client.client_token:
+                body = {
+                    "doc_token": client.doctor_token,
+                    "session_uid": str(chat_id),
+                    "platform": 2,
+                    "reason": client.consulate.reason_petition,
+                    "first_name": first_name,
+                    "middle_name": middle_name,
+                    "age": client.age,
+                    "phone": client.phone
+                }
+            else:
+                body = {
+                    "doc_token": client.doctor_token,
+                    "session_uid": str(chat_id),
+                    "platform": 2,
+                    "reason": client.consulate.reason_petition,
+                    "patient_token": client.client_token,
+                }
             if not client.consulate.select_is_emergency:
                 body['schedule_id'] = client.consulate.select_schedule_id
 
