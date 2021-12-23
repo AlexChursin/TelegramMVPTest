@@ -82,7 +82,7 @@ class API:
         return []
 
 
-    def send_patient_text_message(self, text: str, dialog_id: int):
+    async def send_patient_text_message(self, text: str, dialog_id: int):
         try:
             body = {
                 "_type": "text",
