@@ -44,7 +44,7 @@ class TelegramView(IView):
         await self._bot.delete_message(chat_id, message_id=message_id)
 
     @staticmethod
-    def __get_markup(inline_buttons: List[InlineViewButton], buttons: List[ViewButton], close_buttons: bool) -> Optional[InlineKeyboardMarkup]:
+    def __get_markup(inline_buttons: List[InlineViewButton] = None, buttons: List[ViewButton] = None, close_buttons: bool = False) -> Optional[InlineKeyboardMarkup]:
         markup = None
 
         if inline_buttons is not None:
