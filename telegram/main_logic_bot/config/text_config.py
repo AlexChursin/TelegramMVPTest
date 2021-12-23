@@ -24,7 +24,6 @@ class Texts(BaseModel):
     number_error: str
     finish: str
     finish_emb: str
-    finish_emb: str
     recommend_friend: str
     sorry_dialog_now: str
     sorry_dialog_now_emer: str

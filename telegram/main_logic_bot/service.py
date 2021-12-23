@@ -172,7 +172,8 @@ class BotService:
             send_text = self.text_config.texts.finish_emb
         res = await back_api.create_consulate(chat_id, client=client)
         if res:
-            await self.view.send_assistant_message(chat_id, text=send_text, doctor_n=client.doctor_name)
+            await self.view.send_assistant_message(chat_id, text=send_text, doctor_n=client.doctor_name,
+                                                   buttons=get_finish_cons_buttons(self.text_config.buttons.reject_consulate))
 
             dialog_id, cons_token, client_token = res
             client.consulate.dialog_id = dialog_id
@@ -181,8 +182,7 @@ class BotService:
             client.status = State.dialog.value
         else:
             await self.view.send_assistant_message(chat_id, text=self.text_config.texts.error_create_cons,
-                                                   doctor_n=client.doctor_name,
-                                                   buttons=get_finish_cons_buttons(self.text_config.buttons.reject_consulate))
+                                                   doctor_n=client.doctor_name)
             pass  ######### нужно потом написать ответ если диалог не создался 29.11.21
         return client
 
