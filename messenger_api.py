@@ -34,7 +34,7 @@ class MessengerAPI:
         r = requests.get(f'{self.url}/text_config')
         data = r.json()
         data['buttons'] = {v['param']: v['value'] for v in data['buttons']}
-        data['texts'] = {v['param']: v['value'] for v in data['texts']}
+        data['texts'] = {v['param']: v['value'].replace(r'\\', '\\') for v in data['texts']}
         return TextBot(**data)
 
     async def get_config_buttons(self) -> Texts:
