@@ -2,8 +2,6 @@ from typing import Optional
 
 from messenger_api import mess_api
 from telegram.aiogram_view import tg_view
-from telegram.main_logic_bot.bot_entity import InlineViewButton
-from telegram.main_logic_bot.button import MyButton, ButtonCollection
 from telegram.main_logic_bot.client_repo.user_bot_state import State
 from telegram.main_logic_bot.steps.keyboards import get_finish_buttons
 

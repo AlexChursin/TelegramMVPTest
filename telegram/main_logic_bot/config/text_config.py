@@ -24,17 +24,21 @@ class Texts(BaseModel):
     number_error: str
     finish: str
     finish_emb: str
+    finish_emb: str
     recommend_friend: str
     sorry_dialog_now: str
     sorry_dialog_now_emer: str
+    reject_consulate: str
     error_token: str
     error_create_cons: str
 
 
 class Buttons(BaseModel):
-    start_button_now: Button
-    start_button_tomorrow: Button
-    start_button_emergency: Button
+    start_button_now: str
+    start_button_tomorrow: str
+    start_button_emergency: str
+    change_time_cons: str
+    reject_consulate: str
 
 
 class TextBot(BaseModel):

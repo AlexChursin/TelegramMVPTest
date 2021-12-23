@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -6,6 +7,10 @@ class InlineViewButton:
     callback: str
     text: str
 
+
+@dataclass
+class ViewButton:
+    text: str
 
 
 

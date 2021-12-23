@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 from http import HTTPStatus
 from typing import List, Optional, Tuple
@@ -48,7 +49,7 @@ class API:
 
             async with aiohttp.ClientSession() as session:
                 async with session.post(f'{self.url}/consultation', json=body) as r:
-                    json = await r.json() # debug
+                    json = await r.json()  # debug
                     if r.status == HTTPStatus.OK:
                         res = await r.json()
                         return res['data']['dialog_id'], res['data']['cons_token'], res['data']['patient_token']
@@ -77,10 +78,10 @@ class API:
                     data = res['data'][day]
                     _format = '%H:%M'
                     _list_time = [datetime.fromisoformat(val['date'][:-1]) for val in data]
-                    list_times = [f'{time.strftime(_format)} {(time + timedelta(hours=1)).strftime(_format)}' for time in _list_time]
+                    list_times = [f'{time.strftime(_format)} {(time + timedelta(hours=1)).strftime(_format)}' for time
+                                  in _list_time]
                     return [Schedule(id=val['id'], time=list_times[i]) for i, val in enumerate(data)]
         return []
-
 
     async def send_patient_text_message(self, text: str, dialog_id: int):
         try:
@@ -88,9 +89,8 @@ class API:
                 "_type": "text",
                 "data": {
                     "text": text
-                    }
                 }
-            
+            }
             async with aiohttp.ClientSession() as session:
                 async with session.post(f'{self.url}/dialog/{dialog_id}/message', json=body) as r:
                     if r.status == HTTPStatus.OK:
@@ -98,9 +98,21 @@ class API:
                         return res['data']
                     return None
         except Exception as e:
-            print(e)
+            logging.error(e)
         return None
 
+    async def send_reject_cons(self, client_token: str, cons_token: str):
+        try:
+            body = {
+                "cons_token": client_token,
+                "patient_token": cons_token
+            }
+            async with aiohttp.ClientSession() as session:
+                async with session.post(f'{self.url}/consultation/reject', json=body) as r:
+                    if r.status == HTTPStatus.OK:
+                        await r.json()
+        except Exception as e:
+            logging.error(e)
 
 
 back_api = API(url=URL_API_BACKEND)

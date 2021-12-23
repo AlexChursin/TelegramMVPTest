@@ -1,12 +1,12 @@
 from io import BytesIO
 
 from aiogram import Bot, types
-from aiogram.types import InlineKeyboardMarkup, InputFile
+from aiogram.types import InlineKeyboardMarkup, InputFile, ReplyKeyboardMarkup
 from sentry_sdk import capture_exception
 
 from .bot_init import bot
 from .config import BOT_NAME
-from .main_logic_bot.bot_entity import InlineViewButton
+from .main_logic_bot.bot_entity import InlineViewButton, ViewButton
 from .main_logic_bot.bot_interface import IView
 
 from typing import List, Optional
@@ -27,7 +27,8 @@ class TelegramView(IView):
 
     async def send_message_doctor(self, chat_id: int, text: str, doctor_name: str):
         text = f"<b>{doctor_name}</b>\n{text}"
-        await self._bot.send_message(chat_id, text=text, parse_mode='HTML')
+        markup = types.ReplyKeyboardRemove()
+        await self._bot.send_message(chat_id, text=text, parse_mode='HTML', reply_markup=markup)
 
     def __init__(self, bot_: Bot):
         self._bot: Bot = bot_
@@ -43,13 +44,20 @@ class TelegramView(IView):
         await self._bot.delete_message(chat_id, message_id=message_id)
 
     @staticmethod
-    def __get_markup(inline_buttons: List[InlineViewButton]) -> Optional[InlineKeyboardMarkup]:
+    def __get_markup(inline_buttons: List[InlineViewButton], buttons: List[ViewButton], close_buttons: bool) -> Optional[InlineKeyboardMarkup]:
         markup = None
 
         if inline_buttons is not None:
             markup = types.InlineKeyboardMarkup(row_width=1)
             for button in inline_buttons:
                 markup.add(types.InlineKeyboardButton(text=button.text, callback_data=button.callback))
+        if buttons is not None:
+            markup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
+            for button in buttons:
+                markup.add(types.KeyboardButton(text=button.text))
+        if close_buttons:
+            markup = types.ReplyKeyboardRemove()
+
         return markup
 
     async def edit_bot_message(self, chat_id: int, text: str, message_id: int,
@@ -71,9 +79,9 @@ class TelegramView(IView):
     async def send_assistant_message(self, chat_id: int, text: str,
                                      doctor_n: Optional[str] = None,
                                      inline_buttons: List[InlineViewButton] = None,
-                                     close_markup: bool = False):
+                                     buttons: List[ViewButton] = None, close_buttons: bool = False):
         print(chat_id)
-        markup = self.__get_markup(inline_buttons)
+        markup = self.__get_markup(inline_buttons, buttons, close_buttons)
         if doctor_n is not None:
             text = f'Ассистент <b>{doctor_n}:</b>\n{text}'
         await self._bot.send_message(chat_id, text=text, reply_markup=markup, parse_mode='HTML')

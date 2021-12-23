@@ -11,7 +11,8 @@ from .client_repo.client_interface import IClientRepo
 from .client_repo.user_bot_state import State
 from .config.text_config import TextBot
 from .service_funcs import _get_doctor_from_url
-from .steps.keyboards import get_hello_keyboard, get_change_time_cons_keyboard, get_time_buttons
+from .steps.keyboards import get_hello_keyboard, get_change_time_cons_keyboard, get_time_buttons, \
+    get_finish_cons_buttons
 from ..utils import is_number, get_birthday
 
 
@@ -98,7 +99,7 @@ class BotService:
         if client.phone:
             await self.view.send_assistant_message(chat_id,
                                                    self.text_config.texts.user_reason.format(client.first_middle_name),
-                                                   doctor_n=client.doctor_name_p, close_markup=True)
+                                                   doctor_n=client.doctor_name_p)
             client.status = State.await_reason_petition_text.value
         else:
             await self.view.send_phone_request(chat_id, self.text_config.texts.number,
@@ -124,7 +125,7 @@ class BotService:
         if button_object.type is ButtonCollection.time_button:
             client.consulate.select_time = button_object.label.lower()
             client.consulate.select_schedule_id = int(button_object.data)
-            buttons = get_change_time_cons_keyboard()
+            buttons = get_change_time_cons_keyboard(self.text_config.buttons.change_time_cons)
             text = self.text_config.texts.cons.format(client.consulate.select_day, client.consulate.select_time)
             await self.view.edit_bot_message(chat_id=chat_id, text=text, inline_buttons=buttons,
                                              message_id=bot_message_id)
@@ -157,8 +158,7 @@ class BotService:
         client = await self.client_repo.get_client(user_id)
         if client is not None:
             client.phone = phone_text
-            await self.view.send_assistant_message(chat_id, self.text_config.texts.reason, doctor_n=client.doctor_name,
-                                                   close_markup=True)
+            await self.view.send_assistant_message(chat_id, self.text_config.texts.reason, doctor_n=client.doctor_name)
             client.status = State.await_reason_petition_text.value
         await self.client_repo.save_client(client)
 
@@ -181,7 +181,8 @@ class BotService:
             client.status = State.dialog.value
         else:
             await self.view.send_assistant_message(chat_id, text=self.text_config.texts.error_create_cons,
-                                                   doctor_n=client.doctor_name)
+                                                   doctor_n=client.doctor_name,
+                                                   buttons=get_finish_cons_buttons(self.text_config.buttons.reject_consulate))
             pass  ######### нужно потом написать ответ если диалог не создался 29.11.21
         return client
 
@@ -225,8 +226,12 @@ class BotService:
                                                            doctor_n=client.doctor_name)
 
             elif client.status is State.dialog.value:
-                if client.consulate.dialog_id is not None:
-                    is_send = await back_api.send_patient_text_message(text=text, dialog_id=client.consulate.dialog_id)
-                    if not is_send:
-                        pass  ## нужно написать ответ бота если сообщение не отправлено 29.11.2021
+                if text == self.text_config.buttons.reject_consulate:
+                    await back_api.send_reject_cons(client.client_token, client.consulate.cons_token)
+                    await self.view.send_assistant_message(chat_id, text=self.text_config.texts.reject_consulate, close_buttons=True)
+                else:
+                    if client.consulate.dialog_id is not None:
+                        is_send = await back_api.send_patient_text_message(text=text, dialog_id=client.consulate.dialog_id)
+                        if not is_send:
+                            pass  ## нужно написать ответ бота если сообщение не отправлено 29.11.2021
             await self.client_repo.save_client(client)
