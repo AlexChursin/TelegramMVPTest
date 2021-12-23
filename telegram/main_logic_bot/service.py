@@ -226,7 +226,7 @@ class BotService:
 
             elif client.status is State.dialog.value:
                 if client.consulate.dialog_id is not None:
-                    is_send = back_api.send_patient_text_message(text=text, dialog_id=client.consulate.dialog_id)
+                    is_send = await back_api.send_patient_text_message(text=text, dialog_id=client.consulate.dialog_id)
                     if not is_send:
                         pass  ## нужно написать ответ бота если сообщение не отправлено 29.11.2021
             await self.client_repo.save_client(client)
