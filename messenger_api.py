@@ -1,9 +1,12 @@
 from http import HTTPStatus
-from typing import Optional
+from typing import Optional, List
 
 import aiohttp
+import requests
+
 from telegram import config
 from telegram.main_logic_bot.client_repo.client_entity import TelegramClient, Consulate
+from telegram.main_logic_bot.config.text_config import Texts, TextBot
 
 
 class MessengerAPI:
@@ -21,6 +24,30 @@ class MessengerAPI:
     async def get_consulate(self, dialog_id) -> Optional[Consulate]:
         async with aiohttp.ClientSession() as session:
             async with session.get(f'{self.url}/tg/consulate/dialog/{dialog_id}') as r:
+                if r.status == HTTPStatus.OK:
+                    data = await r.json()
+                    return Consulate(**data)
+        return None
+
+
+    def get_config_texts(self) -> TextBot:
+        r = requests.get(f'{self.url}/text_config')
+        data = r.json()
+        data['buttons'] = {v['param']: v['value'] for v in data['buttons']}
+        data['texts'] = {v['param']: v['value'] for v in data['texts']}
+        return TextBot(**data)
+
+    async def get_config_buttons(self) -> Texts:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f'{self.url}/config/buttons') as r:
+                if r.status == HTTPStatus.OK:
+                    data = await r.json()
+                    d = {v['param']: v['value'] for v in data.items()}
+                    return Texts(**d)
+
+    async def get_config(self) -> Optional[Consulate]:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f'{self.url}/config/buttons') as r:
                 if r.status == HTTPStatus.OK:
                     data = await r.json()
                     return Consulate(**data)

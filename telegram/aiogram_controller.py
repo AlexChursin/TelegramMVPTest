@@ -5,6 +5,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.utils import executor
 from sentry_sdk import capture_exception, capture_message
 
+from messenger_api import mess_api
 from .bot_init import bot, dp
 from .main_logic_bot.client_repo.client_provider import APIClientRepo
 
@@ -12,9 +13,18 @@ from .main_logic_bot.config.text_config import TextBot
 from .main_logic_bot.service import BotService
 from .aiogram_view import tg_view
 
+
+def get_config_from_file():
+    return TextBot(**json.load(
+        open('telegram/main_logic_bot/config/bot_text_word.json', 'r', encoding='UTF-8')))
+
+
+def get_config_from_url():
+    return mess_api.get_config_texts()
+
+
 bot_service = BotService(view=tg_view,
-                         text_config=TextBot(**json.load(
-                             open('telegram/main_logic_bot/config/bot_text_word.json', 'r', encoding='UTF-8'))),
+                         text_config=get_config_from_url(),
                          client_repo=APIClientRepo())
 
 
