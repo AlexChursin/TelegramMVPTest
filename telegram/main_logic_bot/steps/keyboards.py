@@ -38,7 +38,7 @@ def get_time_buttons(list_times: List[Schedule]):
                                                   type_value=ButtonCollection.time_button.value).to_callback()) for
                value in list_times]
     buttons.append(InlineViewButton(text='Назад', callback=MyButton(label='menu', data='b',
-                                                                    type_value=ButtonCollection.main_menu.value).to_callback()))
+                                                                    type_value=ButtonCollection.back_time_to_main.value).to_callback()))
     return buttons
 
 
