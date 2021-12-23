@@ -83,7 +83,24 @@ class API:
 
 
     def send_patient_text_message(self, text: str, dialog_id: int):
-        return True
+        try:
+            body = {
+                "_type": "text",
+                "data": {
+                    "text": text
+                    }
+                }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(f'{self.url}/dialog/{dialog_id}/message', json=body) as r:
+                    if r.status == HTTPStatus.OK:
+                        res = await r.json()
+                        return res['data']
+                    return None
+        except Exception as e:
+            print(e)
+        return None
+
 
 
 back_api = API(url=URL_API_BACKEND)
