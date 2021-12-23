@@ -52,7 +52,7 @@ class TelegramView(IView):
             for button in inline_buttons:
                 markup.add(types.InlineKeyboardButton(text=button.text, callback_data=button.callback))
         if buttons is not None:
-            markup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
+            markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
             for button in buttons:
                 markup.add(types.KeyboardButton(text=button.text))
         if close_buttons:
