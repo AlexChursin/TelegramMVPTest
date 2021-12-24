@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import File, APIRouter, Query
+from fastapi import File, APIRouter, Query, UploadFile
 from fastapi.responses import JSONResponse
 
 from messenger_api import mess_api
@@ -16,13 +16,6 @@ class DialogMessage(BaseModel):
     dialog_id: int
     text: str
     doctor_name: str
-
-
-class DialogFile(BaseModel):
-    dialog_id: int
-    filename: str
-    doctor_name: str
-    body: bytes = File(...)
 
 
 class FinishMessage(BaseModel):
@@ -51,10 +44,11 @@ async def finish_message(dialog_message: FinishMessage):
 
 
 @message_route.post("/send/file_message", response_model=Message, responses={404: {"model": ErrorMessage}})
-async def file_message(dialog_file: DialogFile):
-    consulate = await mess_api.get_consulate(dialog_file.dialog_id)
+async def file_message(dialog_id: int, doctor_name: str, file: UploadFile = File(...)):
+    consulate = await mess_api.get_consulate(dialog_id)
+
     if consulate is not None:
-        await tg_view.send_file_from_doctor(consulate.chat_id, data=dialog_file.body, filename=dialog_file.filename, doctor_name=dialog_file.doctor_name)
+        await tg_view.send_file_from_doctor(consulate.chat_id, data=await file.read(), filename=file.filename, doctor_name=doctor_name)
         return Message(chat_id=consulate.chat_id)
     else:
         return JSONResponse(status_code=404, content={'detail': 'Consulate not found'})
