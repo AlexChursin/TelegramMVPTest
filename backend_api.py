@@ -1,9 +1,11 @@
 import logging
 from datetime import datetime, timedelta
 from http import HTTPStatus
+from io import BytesIO
 from typing import List, Optional, Tuple
 
 import aiohttp
+from sentry_sdk import capture_exception
 
 from telegram.config import URL_API_BACKEND
 from telegram.main_logic_bot.bot_entity import Schedule
@@ -15,16 +17,21 @@ class API:
         self.url = url
 
     async def get_doctor_name(self, token: str = None) -> Optional[str]:
-        if token is not None:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(f'{self.url}/doctor?token={token}') as r:
-                    if r.status == HTTPStatus.OK:
-                        res = await r.json()
-                        doctor = res['data']
-                        return f"{doctor['first_name']} {doctor['middle_name']}"
-                    return 'Кристина Александровна'
-        else:
-            return None
+        try:
+            if token is not None:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(f'{self.url}/doctor?token={token}') as r:
+                        if r.status == HTTPStatus.OK:
+                            res = await r.json()
+                            doctor = res['data']
+                            return f"{doctor['first_name']} {doctor['middle_name']}"
+                        return 'Кристина Александровна'
+            else:
+                return None
+        except Exception as e:
+            capture_exception(e)
+        return None
+
 
     async def create_consulate(self, chat_id: int, client: TelegramClient, ) -> Optional[Tuple[int, str, str]]:
         """
@@ -65,32 +72,38 @@ class API:
                         logging.error(f'body: {body}, {json}')
                     return None
         except Exception as e:
-            logging.error(e)
+            capture_exception(e)
         return None
 
     async def get_list_free_days(self, doc_token: str) -> List[str]:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f'{self.url}/schedule?doc_token={doc_token}') as r:
-                if r.status == HTTPStatus.OK:
-                    res = await r.json()
-                    data = res['data']
-                    if len(data):
-                        return [str(key) for key, value in data.items() if len(value)]
-                    else:
-                        return []
-                return []
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f'{self.url}/schedule?doc_token={doc_token}') as r:
+                    if r.status == HTTPStatus.OK:
+                        res = await r.json()
+                        data = res['data']
+                        if len(data):
+                            return [str(key) for key, value in data.items() if len(value)]
+                        else:
+                            return []
+        except Exception as e:
+            capture_exception(e)
+        return []
 
     async def get_list_free_times(self, day: str, doc_token: str) -> List[Schedule]:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f'{self.url}/schedule?doc_token={doc_token}') as r:
-                if r.status == HTTPStatus.OK:
-                    res = await r.json()
-                    data = res['data'][day]
-                    _format = '%H:%M'
-                    _list_time = [datetime.fromisoformat(val['date'][:-1]) for val in data]
-                    list_times = [f'{time.strftime(_format)} {(time + timedelta(hours=1)).strftime(_format)}' for time
-                                  in _list_time]
-                    return [Schedule(id=val['id'], time=list_times[i]) for i, val in enumerate(data)]
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f'{self.url}/schedule?doc_token={doc_token}') as r:
+                    if r.status == HTTPStatus.OK:
+                        res = await r.json()
+                        data = res['data'][day]
+                        _format = '%H:%M'
+                        _list_time = [datetime.fromisoformat(val['date'][:-1]) for val in data]
+                        list_times = [f'{time.strftime(_format)} {(time + timedelta(hours=1)).strftime(_format)}' for time
+                                      in _list_time]
+                        return [Schedule(id=val['id'], time=list_times[i]) for i, val in enumerate(data)]
+        except Exception as e:
+            capture_exception(e)
         return []
 
     async def send_patient_text_message(self, text: str, dialog_id: int):
@@ -108,8 +121,23 @@ class API:
                         return res['data']
                     return None
         except Exception as e:
-            logging.error(e)
+            capture_exception(e)
         return None
+
+    async def send_patient_document(self, dialog_id: int, filename: str, data: BytesIO):
+        try:
+            open('')
+            files = {'file': (filename, data)}
+
+            async with aiohttp.ClientSession() as session:
+                async with session.post(f'{self.url}/dialog/{dialog_id}/upload', data=files) as r:
+                    if r.status == HTTPStatus.CREATED:
+                        res = await r.json()
+                        return True
+                    return False
+        except Exception as e:
+            capture_exception(e)
+        return False
 
     async def send_reject_cons(self, client_token: str, cons_token: str):
         try:
@@ -122,7 +150,7 @@ class API:
                     if r.status == HTTPStatus.OK:
                         await r.json()
         except Exception as e:
-            logging.error(e)
+            capture_exception(e)
 
 
 back_api = API(url=URL_API_BACKEND)

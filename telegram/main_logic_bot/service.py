@@ -1,3 +1,4 @@
+from io import BytesIO
 from typing import Optional
 
 import sentry_sdk
@@ -245,3 +246,11 @@ class BotService:
                         if not is_send:
                             pass  ## нужно написать ответ бота если сообщение не отправлено 29.11.2021
             await self.client_repo.save_client(client)
+
+
+    async def send_file_to_doctor(self, user_id, filename: str, bytes_oi: BytesIO):
+        client = await self.client_repo.get_client(user_id)
+        if client:
+            if client.consulate:
+                if client.consulate.dialog_id:
+                    return await back_api.send_patient_document(dialog_id=client.consulate.dialog_id, filename=filename, data=bytes_oi)
