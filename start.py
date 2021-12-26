@@ -1,6 +1,8 @@
 import uvicorn
 from fastapi import FastAPI
 from loguru import logger
+
+from routes.hook_cd_route import app_update
 from routes.message_route import message_route, util_route
 from routes.tg_route import set_webhook, tg_route
 from telegram.config import SERVER_PREFIX
@@ -9,6 +11,7 @@ app = FastAPI(title='API TELEGRAM BOT', description='API для взаимоде
 app.include_router(tg_route, prefix=SERVER_PREFIX)
 app.include_router(message_route, tags=["Message"], prefix=SERVER_PREFIX)
 app.include_router(util_route, tags=["Utils"], prefix=SERVER_PREFIX)
+app.include_router(app_update, tags=["CD/CI"], prefix=SERVER_PREFIX)
 
 
 @app.on_event("startup")
