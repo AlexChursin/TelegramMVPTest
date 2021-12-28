@@ -10,13 +10,11 @@ class Button(BaseModel):
 class Texts(BaseModel):
     start: str
     start_empty: str
-    info: str
+    help: str
     set_cons_time: str
     cons: str
     user_reason: str
     reason: str
-    medications: str
-    family: str
     name_otch: str
     birthdate: str
     birthdate_error: str
@@ -39,7 +37,8 @@ class Buttons(BaseModel):
     change_time_cons: str
     reject_consulate: str
     new_cons: str
-
+    recommend_friend: str
+    new_query: str
 
 class TextBot(BaseModel):
     texts: Texts

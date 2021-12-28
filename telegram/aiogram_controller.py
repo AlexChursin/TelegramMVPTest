@@ -1,18 +1,14 @@
 import json
 import threading
-from typing import BinaryIO
 
-from aiogram.types import Message, CallbackQuery, ContentType, Document, ChatPhoto
+from aiogram.types import Message, CallbackQuery
 from aiogram.utils import executor
-from sentry_sdk import capture_exception, capture_message
+from sentry_sdk import capture_exception
 
 from messenger_api import mess_api
 from .bot_init import bot, dp
-from .main_logic_bot.client_repo.client_provider import APIClientRepo
-
 from .main_logic_bot.config.text_config import TextBot
-from .main_logic_bot.service import BotService
-from .aiogram_view import tg_view
+from .main_logic_bot.service_provider import bot_service
 
 
 def get_config_from_file():
@@ -23,10 +19,6 @@ def get_config_from_file():
 def get_config_from_url():
     return mess_api.get_config_texts()
 
-
-bot_service = BotService(view=tg_view,
-                         text_config=get_config_from_url(),
-                         client_repo=APIClientRepo())
 
 
 @dp.message_handler(commands=['start'])
@@ -43,9 +35,15 @@ async def on_start_command(message: Message):
         capture_exception(e)
 
 
-@dp.message_handler(commands=['info'])
+@dp.message_handler(commands=['help'])
 async def info_message(message):
-    await bot_service.send_info(chat_id=message.chat.id)
+    await bot_service.send_help(chat_id=message.chat.id)
+
+
+
+@dp.message_handler(commands=['recommend'])
+async def info_message(message):
+    await bot_service.send_recommend(user_id=message.from_user.id, chat_id=message.chat.id)
 
 
 @dp.message_handler(content_types=['photo'])
