@@ -4,7 +4,6 @@ from fastapi import File, APIRouter, Query, UploadFile
 from fastapi.responses import JSONResponse
 
 from messenger_api import mess_api
-from telegram.main_logic_bot.service_provider import bot_service
 from .schemas import *
 
 message_route = APIRouter()

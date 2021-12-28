@@ -1,15 +1,13 @@
 from io import BytesIO
+from typing import List, Optional
 
 from aiogram import Bot, types
-from aiogram.types import InlineKeyboardMarkup, InputFile, ReplyKeyboardMarkup
-from sentry_sdk import capture_exception
+from aiogram.types import InlineKeyboardMarkup, InputFile
 
 from .bot_init import bot
 from .config import BOT_NAME
 from .main_logic_bot.bot_entity import InlineViewButton, ViewButton
 from .main_logic_bot.bot_interface import IView
-
-from typing import List, Optional
 
 
 class TelegramView(IView):
@@ -30,8 +28,8 @@ class TelegramView(IView):
         markup = types.ReplyKeyboardRemove()
         await self._bot.send_message(chat_id, text=text, parse_mode='HTML', reply_markup=markup)
 
-    def __init__(self, bot_: Bot):
-        self._bot: Bot = bot_
+    def __init__(self):
+        self._bot: Bot = bot
 
     async def send_file_from_doctor(self, chat_id: int, data: bytes, filename: str, doctor_name: str):
         b = BytesIO(data)
@@ -82,6 +80,3 @@ class TelegramView(IView):
         if doctor_n_p is not None:
             text = f'Ассистент <b>{doctor_n_p}:</b>\n{text}'
         await self._bot.send_message(chat_id, text=text, reply_markup=markup, parse_mode='HTML')
-
-
-tg_view = TelegramView(bot)
