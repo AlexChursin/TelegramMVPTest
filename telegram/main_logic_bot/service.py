@@ -150,7 +150,7 @@ class BotService:
             await self.view.delete_message(chat_id, bot_message_id + 1)
             await self.answer_on_start_command(chat_id, user_id)
         if button_object.type is ButtonCollection.recommend_friends:
-            await self.send_recommend(user_id=user_id, chat_id=chat_id)
+            await self.send_recommend(user_id=user_id, chat_id=chat_id, add_buttons=True)
         if button_object.type is ButtonCollection.new_query:
             client.status = State.start_first.value
             await self.answer_on_start_command(chat_id, user_id)
@@ -254,12 +254,12 @@ class BotService:
                     return await back_api.send_patient_document(dialog_id=client.consulate.dialog_id, filename=filename,
                                                                 data=bytes_oi)
 
-    async def send_recommend(self, user_id, chat_id):
+    async def send_recommend(self, user_id, chat_id, add_buttons: bool = False):
         client = await self.client_repo.get_client(user_id)
         if client:
+            buttons = get_button_new_con(self.text_config.buttons.new_cons) if add_buttons else None
             await self.view.send_assistant_message(chat_id=chat_id, text=self.text_config.texts.recommend_friend,
-                                                   doctor_n_p=client.doctor_name_p,
-                                                   buttons=get_button_new_con(self.text_config.buttons.new_cons))
+                                                   doctor_n_p=client.doctor_name_p, buttons=buttons)
             await self.view.send_vcard(chat_id=chat_id, doctor_name=client.doctor_name, doc_token=client.doctor_token)
 
     async def finish_consulate(self, user_id, chat_id, text: str) -> Optional[int]:
