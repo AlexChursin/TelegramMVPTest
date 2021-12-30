@@ -1,9 +1,6 @@
 import json
 
 import pytest
-
-from backend_api import back_api
-from telegram.aiogram_view import tg_view
 from telegram.main_logic_bot.button import MyButton, ButtonCollection
 from telegram.main_logic_bot.client_repo.client_provider import APIClientRepo
 from telegram.main_logic_bot.config.text_config import TextBot

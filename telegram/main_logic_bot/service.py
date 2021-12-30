@@ -41,7 +41,7 @@ class BotService:
         if len(list_key_days):
             text = self.text_config.texts.start.format(doctor_name=doctor_name_p)
             show_ember = False
-            if client.client_token and not client.consulate:
+            if client.client_token:
                 show_ember = True
             buttons = get_hello_keyboard(self.text_config, show_ember, list_key_days)
         else:
@@ -51,7 +51,7 @@ class BotService:
         else:
             await self.view.edit_bot_message(client.chat_id, text, message_id=message_id, inline_buttons=buttons)
 
-    async def _old_client(self, client: TelegramClient, refer_url_text: str = ''):
+    async def _old_client(self, client: TelegramClient, refer_url_text: str):
         if client.consulate:
             if client.consulate.cons_token:  # идет консультация
                 if not client.consulate.select_is_emergency:
@@ -91,7 +91,7 @@ class BotService:
                                       firstname: str = '', lastname: str = ''):
         client = await self.client_repo.get_client(user_id)
         if client is not None:
-            await self._old_client(client)
+            await self._old_client(client, refer_url_text)
         else:
             await self._new_client(chat_id, user_id, refer_url_text)
 
