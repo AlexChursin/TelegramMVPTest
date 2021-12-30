@@ -138,6 +138,7 @@ class BotService:
                                              message_id=bot_message_id)
             client = await self._send_reason_petition_or_phone_query(client, chat_id)
         if button_object.type is ButtonCollection.back_time_to_main:
+            client.status = State.start_first.value
             client.consulate = None
             await self._send_doctor_hello_message(client, client.doctor_token, client.doctor_name_p, edit=True,
                                                   message_id=bot_message_id)
@@ -146,6 +147,7 @@ class BotService:
             client.consulate.select_is_emergency = True
             client = await self._send_reason_petition_or_phone_query(client, chat_id)
         if button_object.type is ButtonCollection.back_main:
+            client.status = State.start_first.value
             await self.view.delete_message(chat_id, bot_message_id)
             await self.view.delete_message(chat_id, bot_message_id + 1)
             await self.answer_on_start_command(chat_id, user_id)
