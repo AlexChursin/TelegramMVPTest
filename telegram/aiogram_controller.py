@@ -47,7 +47,7 @@ async def photo_image(message: Message):
         file_id = message.photo[-1].file_id
         file = await bot.get_file(file_id)
         result = await bot.download_file(file.file_path)
-        await bot_service.send_file_to_doctor(user_id=message.from_user.id, filename=message.document.file_name, bytes_oi=result)
+        await bot_service.send_file_to_doctor(user_id=message.from_user.id, filename=str(file.file_unique_id), bytes_oi=result)
     except Exception as e:
         capture_exception(e)
 
