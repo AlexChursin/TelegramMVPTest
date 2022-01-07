@@ -37,7 +37,7 @@ async def finish_message(dialog_message: FinishMessage):
     consulate = await mess_api.get_consulate(dialog_message.dialog_id)
     if consulate:
         if consulate.chat_id is not None:
-            chat_id = await bot_service.finish_consulate(dialog_message.dialog_id, dialog_message.text, dialog_message.doctor_name)
+            chat_id = await bot_service.finish_consulate(user_id=consulate.user_id, chat_id=consulate.chat_id, text=dialog_message.text)
             if chat_id:
                 return Message(chat_id=chat_id)
     return JSONResponse(status_code=404, content={'detail': 'Consulate not found'})
