@@ -18,8 +18,9 @@ class TelegramView(IView):
                                            "VERSION:3.0\n" +
                                            "N:Solo;Han\n" +
                                            # "ORG:Организация ассистент\n" +
-                                           f"URL:https://t.me/{BOT_NAME}?start=doc_{doc_token}\n"
-                                          "TEL;TYPE=celular:*\n" +
+                                           f"URL:https://doc-crm.net/?doc_token={doc_token}\n" +
+                                           # f"URL:https://t.me/{BOT_NAME}?start=doc_{doc_token}\n"
+                                           "TEL;TYPE=celular:*\n" +
                                            # "EMAIL:hansolo@mfalcon.com\n" +
                                            "END:VCARD")
 
@@ -35,12 +36,12 @@ class TelegramView(IView):
         b = BytesIO(data)
         await self._bot.send_document(chat_id, document=InputFile(b), caption=filename)
 
-
     async def delete_message(self, chat_id: int, message_id: int):
         await self._bot.delete_message(chat_id, message_id=message_id)
 
     @staticmethod
-    def __get_markup(inline_buttons: List[InlineViewButton] = None, buttons: List[ViewButton] = None, close_buttons: bool = False) -> Optional[InlineKeyboardMarkup]:
+    def __get_markup(inline_buttons: List[InlineViewButton] = None, buttons: List[ViewButton] = None,
+                     close_buttons: bool = False) -> Optional[InlineKeyboardMarkup]:
         markup = None
 
         if inline_buttons is not None:
