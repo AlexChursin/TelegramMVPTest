@@ -17,7 +17,7 @@ class Texts(BaseModel):
     reason: str
     name_otch: str
     birthdate: str
-    birthdate_error: str
+    first_middle_name_error: str
     number: str
     number_error: str
     finish: str

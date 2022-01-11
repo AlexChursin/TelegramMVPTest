@@ -14,7 +14,7 @@ from .config.text_config import TextBot
 from .service_funcs import _get_doctor_from_url
 from .steps.keyboards import get_hello_keyboard, get_change_time_cons_keyboard, get_time_buttons, \
     get_finish_cons_buttons, get_button_new_con, get_finish_buttons
-from ..utils import is_number, get_birthday, fix_number
+from ..utils import is_number, get_birthday, fix_number, is_first_middle_name
 
 
 def traces_sampler(sampling_context):
@@ -188,9 +188,9 @@ class BotService:
             client.client_token = client_token
             client.status = State.dialog.value
         else:
+            client.status = State.start_first.value
             await self.view.send_assistant_message(chat_id, text=self.text_config.texts.error_create_cons,
                                                    doctor_n_p=client.doctor_name_p)
-            pass  ######### нужно потом написать ответ если диалог не создался 29.11.21
         return client
 
     async def answer_on_any_message(self, chat_id, user_id, text):
@@ -219,17 +219,11 @@ class BotService:
                     client.status = State.await_name_otch_text.value
 
             elif client.status is State.await_name_otch_text.value:
-                client.first_middle_name = text
-                client.status = State.await_birthday_text.value
-                await self.view.send_assistant_message(chat_id, text=self.text_config.texts.birthdate,
-                                                       doctor_n_p=client.doctor_name_p)
-            elif client.status is State.await_birthday_text.value:
-                birthday = get_birthday(text)
-                if birthday:
-                    client.age = birthday
+                if is_first_middle_name(text):
+                    client.first_middle_name = text
                     client = await self._finish(chat_id, client)
                 else:
-                    await self.view.send_assistant_message(chat_id, text=self.text_config.texts.birthdate_error,
+                    await self.view.send_assistant_message(chat_id, text=self.text_config.texts.first_middle_name_error,
                                                            doctor_n_p=client.doctor_name_p)
 
             elif client.status is State.dialog.value:

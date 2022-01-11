@@ -47,7 +47,6 @@ class API:
                     "reason": client.consulate.reason_petition,
                     "first_name": first_name,
                     "middle_name": middle_name,
-                    "age": client.age,
                     "phone": client.phone,
                     "schedule_id": client.consulate.select_schedule_id
                 }
