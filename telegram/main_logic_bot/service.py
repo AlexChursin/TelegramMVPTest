@@ -247,7 +247,7 @@ class BotService:
         if client:
             if client.consulate:
                 if client.consulate.dialog_id:
-                    return await back_api.send_patient_document(dialog_id=client.consulate.dialog_id, filename=filename,
+                    back_api.send_patient_document(dialog_id=client.consulate.dialog_id, filename=filename,
                                                                 data=bytes_oi)
 
     async def send_recommend(self, user_id, chat_id, add_buttons: bool = False):

@@ -5,6 +5,7 @@ from io import BytesIO
 from typing import List, Optional, Tuple
 
 import aiohttp
+from aiohttp import FormData
 from sentry_sdk import capture_exception
 
 from telegram.config import URL_API_BACKEND
@@ -123,13 +124,13 @@ class API:
             capture_exception(e)
         return None
 
-    async def send_patient_document(self, dialog_id: int, filename: str, data: BytesIO):
+    async def send_patient_document(self, dialog_id: int, filename: str, data: BytesIO) -> bool:
         try:
-            files = {'file': (filename, data)}
+            form_data = FormData()
+            form_data.add_field('file', data, filename=filename)
             async with aiohttp.ClientSession() as session:
-                async with session.post(f'{self.url}/dialog/{dialog_id}/upload', data=files) as r:
-                    if r.status == HTTPStatus.CREATED:
-                        res = await r.json()
+                async with session.post(f'{self.url}/dialog/{dialog_id}/upload', data=form_data) as r:
+                    if r.status == HTTPStatus.OK:
                         return True
                     return False
         except Exception as e:
