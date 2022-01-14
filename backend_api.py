@@ -125,9 +125,7 @@ class API:
 
     async def send_patient_document(self, dialog_id: int, filename: str, data: BytesIO):
         try:
-            open('')
             files = {'file': (filename, data)}
-
             async with aiohttp.ClientSession() as session:
                 async with session.post(f'{self.url}/dialog/{dialog_id}/upload', data=files) as r:
                     if r.status == HTTPStatus.CREATED:
