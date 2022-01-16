@@ -23,6 +23,7 @@ class Texts(BaseModel):
     finish: str
     finish_emb: str
     recommend_friend: str
+    continue_dialog: str
     sorry_dialog_now: str
     sorry_dialog_now_emer: str
     reject_consulate: str

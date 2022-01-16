@@ -33,6 +33,19 @@ class API:
             capture_exception(e)
         return None
 
+    async def get_client_from_cons(self, token: str) -> Optional[Tuple[int, str, str, bool, str]]:
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(f'{self.url}/consultation/info', json={"token": token}) as r:
+                    if r.status == HTTPStatus.OK:
+                        res = await r.json()
+                        data = res['data']
+                        is_emergency = True if data['is_emergency'] == 1 else False
+                        name = data['patient']['first_name'] + ' ' + data['patient']['middle_name']
+                        return data['dialog_id'], data['doc_token'], data['patient']['token'], is_emergency, name
+        except Exception as e:
+            capture_exception(e)
+        return None
 
     async def create_consulate(self, chat_id: int, client: TelegramClient, ) -> Optional[Tuple[int, str, str]]:
         """
@@ -99,7 +112,8 @@ class API:
                         data = res['data'][day]
                         _format = '%H:%M'
                         _list_time = [datetime.fromisoformat(val['date'][:-1]) for val in data]
-                        list_times = [f'{time.strftime(_format)} {(time + timedelta(hours=1)).strftime(_format)}' for time
+                        list_times = [f'{time.strftime(_format)} {(time + timedelta(hours=1)).strftime(_format)}' for
+                                      time
                                       in _list_time]
                         return [Schedule(id=val['id'], time=list_times[i]) for i, val in enumerate(data)]
         except Exception as e:

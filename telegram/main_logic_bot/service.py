@@ -14,7 +14,8 @@ from .config.text_config import TextBot
 from .service_funcs import _get_doctor_from_url
 from .steps.keyboards import get_hello_keyboard, get_change_time_cons_keyboard, get_time_buttons, \
     get_finish_cons_buttons, get_button_new_con, get_finish_buttons
-from ..utils import is_number, get_birthday, fix_number, is_first_middle_name
+from .utils import ConsResult, DoctorResult
+from ..utils import is_number, fix_number, is_first_middle_name
 
 
 def traces_sampler(sampling_context):
@@ -34,66 +35,77 @@ class BotService:
         self.text_config: TextBot = text_config
         self.client_repo: IClientRepo = client_repo
 
-    async def _send_doctor_hello_message(self, client: TelegramClient, token: str, doctor_name_p: str,
+    async def _send_doctor_hello_message(self, client: TelegramClient, token: str,
                                          edit: bool = False, message_id: Optional[int] = None):
         list_key_days = await back_api.get_list_free_days(doc_token=token)
         buttons = None
         if len(list_key_days):
-            text = self.text_config.texts.start.format(doctor_name=doctor_name_p)
+            text = self.text_config.texts.start.format(doctor_name=client.doctor_name)
             show_ember = False
             if client.client_token:
                 show_ember = True
             buttons = get_hello_keyboard(self.text_config, show_ember, list_key_days)
         else:
-            text = self.text_config.texts.start_empty.format(doctor_name=doctor_name_p)
+            text = self.text_config.texts.start_empty.format(doctor_name=client.doctor_name_p)
         if not edit:
             await self.view.send_assistant_message(client.chat_id, text, inline_buttons=buttons)
         else:
             await self.view.edit_bot_message(client.chat_id, text, message_id=message_id, inline_buttons=buttons)
 
-    async def _old_client(self, client: TelegramClient, refer_url_text: str):
-        if client.consulate:
-            if client.consulate.cons_token:  # идет консультация
-                if not client.consulate.select_is_emergency:
-                    await self.view.send_assistant_message(client.chat_id,
-                                                           self.text_config.texts.sorry_dialog_now.format(
-                                                               select_day=client.consulate.select_day,
-                                                               select_time_from=client.consulate.select_time.split()[0],
-                                                               select_time_to=client.consulate.select_time.split()[1],
-                                                               doctor_name=client.doctor_name
-                                                           ), doctor_n_p=client.doctor_name_p)
-                else:
-                    await self.view.send_assistant_message(client.chat_id,
-                                                           self.text_config.texts.sorry_dialog_now_emer.format(
-                                                               doctor_name=client.doctor_name),
-                                                           doctor_n_p=client.doctor_name_p)
-                return
-        doctor_name, doctor_name_p, token = await _get_doctor_from_url(refer_url_text)
-        if doctor_name is not None:
-            await self.client_repo.set_client(client.user_id, chat_id=client.chat_id, status=State.start_first.value,
-                                              doctor_name=doctor_name, doc_token=token,
-                                              doctor_name_p=doctor_name_p)
-            await self._send_doctor_hello_message(client, token, doctor_name_p)
-        else:
-            await self._send_doctor_hello_message(client, client.doctor_token, client.doctor_name_p)
-
-    async def _new_client(self, chat_id: int, user_id: int, refer_url_text: str = ''):
-        doctor_name, doctor_name_p, token = await _get_doctor_from_url(refer_url_text)
-        if doctor_name is not None:
-            client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id, status=State.start_first.value,
-                                                       doctor_name=doctor_name, doc_token=token,
-                                                       doctor_name_p=doctor_name_p)
-            await self._send_doctor_hello_message(client, token, doctor_name_p)
-        else:
-            await self.view.send_assistant_message(chat_id, self.text_config.texts.error_token)
-
     async def answer_on_start_command(self, chat_id: int, user_id: int, refer_url_text: str = '', username: str = '',
                                       firstname: str = '', lastname: str = ''):
         client = await self.client_repo.get_client(user_id)
         if client is not None:
-            await self._old_client(client, refer_url_text)
-        else:
-            await self._new_client(chat_id, user_id, refer_url_text)
+            if client.consulate:
+                if client.consulate.cons_token:  # идет консультация
+                    if not client.consulate.select_is_emergency:
+                        await self.view.send_assistant_message(client.chat_id,
+                                                               self.text_config.texts.sorry_dialog_now.format(
+                                                                   select_day=client.consulate.select_day,
+                                                                   select_time_from=
+                                                                   client.consulate.select_time.split()[0],
+                                                                   select_time_to=client.consulate.select_time.split()[
+                                                                       1],
+                                                                   doctor_name=client.doctor_name
+                                                               ), doctor_n_p=client.doctor_name_p)
+                    else:
+                        await self.view.send_assistant_message(client.chat_id,
+                                                               self.text_config.texts.sorry_dialog_now_emer.format(
+                                                                   doctor_name=client.doctor_name),
+                                                               doctor_n_p=client.doctor_name_p)
+                    return
+
+        data, result = await _get_doctor_from_url(refer_url_text)
+        if result is None:
+            if client is not None:
+                client.status = State.start_first.value
+                await self._send_doctor_hello_message(client, token=client.doctor_token)
+            else:
+                await self.view.send_assistant_message(chat_id, self.text_config.texts.error_token)
+            return
+        if type(result) is DoctorResult:
+            doctor_name, doctor_name_p = data
+            client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id,
+                                                       status=State.start_first.value,
+                                                       doctor_name=doctor_name, doc_token=result.token,
+                                                       doctor_name_p=doctor_name_p)
+            await self._send_doctor_hello_message(client, token=result.token)
+
+        if type(result) is ConsResult:
+            dialog_id, doc_token, client_token, is_emergency, doctor_name, doctor_name_p, name = data
+            client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id,
+                                                       status=State.dialog.value,
+                                                       doctor_name=doctor_name, doc_token=doc_token,
+                                                       client_token=client_token, doctor_name_p=doctor_name_p)
+            await self.client_repo.new_consulate(user_id, chat_id)
+            client.consulate.reason_petition = 'from web'
+            client.consulate.dialog_id = dialog_id,
+            client.consulate.select_is_emergency = is_emergency,
+            client.consulate.cons_token = result.token
+            await self.view.send_assistant_message(chat_id,
+                                                   self.text_config.texts.continue_dialog,
+                                                   doctor_n_p=client.doctor_name_p)
+        await self.client_repo.save_client(client)
 
     async def send_help(self, chat_id):
         text = self.text_config.texts.help
@@ -140,7 +152,7 @@ class BotService:
         if button_object.type is ButtonCollection.back_time_to_main:
             client.status = State.start_first.value
             client.consulate = None
-            await self._send_doctor_hello_message(client, client.doctor_token, client.doctor_name_p, edit=True,
+            await self._send_doctor_hello_message(client, token=client.doctor_token, edit=True,
                                                   message_id=bot_message_id)
         if button_object.type is ButtonCollection.start_emer_b:
             client.consulate = await self.client_repo.new_consulate(user_id, chat_id)
@@ -233,7 +245,7 @@ class BotService:
                                                            close_buttons=True)
                     client.status = State.start_first.value
                     client.consulate = None
-                    await self._send_doctor_hello_message(client, client.doctor_token, client.doctor_name_p)
+                    await self._send_doctor_hello_message(client, token=client.doctor_token)
                 else:
                     if client.consulate.dialog_id is not None:
                         is_send = await back_api.send_patient_text_message(text=text,
@@ -248,7 +260,7 @@ class BotService:
             if client.consulate:
                 if client.consulate.dialog_id:
                     await back_api.send_patient_document(dialog_id=client.consulate.dialog_id, filename=filename,
-                                                                data=bytes_oi)
+                                                         data=bytes_oi)
 
     async def send_recommend(self, user_id, chat_id, add_buttons: bool = False):
         client = await self.client_repo.get_client(user_id)

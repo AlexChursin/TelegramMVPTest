@@ -56,8 +56,8 @@ class MessengerAPI:
     async def new_consulate(self, user_id, consulate: Consulate) -> Optional[TelegramClient]:
         async with aiohttp.ClientSession() as session:
             async with session.post(f'{self.url}/tg/client/{user_id}/consulate', data=consulate.json()) as r:
-                data = await r.json()
                 if r.status == HTTPStatus.CREATED:
+                    data = await r.json()
                     return TelegramClient(**data)
         return None
 
