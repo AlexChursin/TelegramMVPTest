@@ -85,10 +85,14 @@ class BotService:
             return
         if type(result) is DoctorResult:
             doctor_name, doctor_name_p = data
+            client_token = None
+            if client is not None:
+                if client.client_token is not None:
+                    client_token = client.client_token
             client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id,
                                                        status=State.start_first.value,
                                                        doctor_name=doctor_name, doc_token=result.token,
-                                                       doctor_name_p=doctor_name_p)
+                                                       doctor_name_p=doctor_name_p, client_token=client_token)
             await self._send_doctor_hello_message(client, token=result.token)
 
         if type(result) is ConsResult:
