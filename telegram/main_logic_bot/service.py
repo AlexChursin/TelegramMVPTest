@@ -57,7 +57,8 @@ class BotService:
         client = await self.client_repo.get_client(user_id)
         data, result = await _get_doctor_from_url(refer_url_text)
         if type(result) is ConsResult:
-            dialog_id, doc_token, client_token, is_emergency, client_name, doctor_name, doctor_name_p = data
+            api_data, doctor_name, doctor_name_p = data
+            dialog_id, doc_token, client_token, is_emergency, client_name = api_data
             if client is None:
                 client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id)
             client.doctor_name = doctor_name
@@ -73,6 +74,7 @@ class BotService:
             await self.view.send_assistant_message(chat_id,
                                                    self.text_config.texts.continue_dialog,
                                                    doctor_n_p=client.doctor_name_p)
+            await self.client_repo.save_client(client)
             return
         if client is not None:
             if client.consulate:
