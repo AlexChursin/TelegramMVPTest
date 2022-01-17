@@ -36,7 +36,7 @@ class API:
     async def get_client_from_cons(self, token: str) -> Optional[Tuple[int, str, str, bool, str]]:
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(f'{self.url}/consultation/info', json={"token": token}) as r:
+                async with session.get(f'{self.url}/consultation/info?token={token}') as r:
                     if r.status == HTTPStatus.OK:
                         res = await r.json()
                         data = res['data']
