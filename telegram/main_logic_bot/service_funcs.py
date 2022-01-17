@@ -21,8 +21,8 @@ async def _get_doctor_from_url(url) -> Tuple[Any, Union[DoctorResult, ConsResult
             doctor_name, doctor_name_p = names
             return (doctor_name, doctor_name_p), result
     if type(result) is ConsResult:
-        dialog_id, doc_token, patient_token, is_emergency, name = await back_api.get_client_from_cons(result.token)
-        names = _get_doctor_names(doc_token)
+        dialog_id, doc_token, patient_token, is_emergency, client_name = await back_api.get_client_from_cons(result.token)
+        names = await _get_doctor_names(doc_token)
         if names:
-            return (dialog_id, doc_token, patient_token, is_emergency, name, *names), result
+            return (dialog_id, doc_token, patient_token, is_emergency, client_name, *names), result
     return None, None
