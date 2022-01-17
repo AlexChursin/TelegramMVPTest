@@ -74,7 +74,7 @@ class BotService:
             await self.view.send_assistant_message(chat_id,
                                                    self.text_config.texts.continue_dialog,
                                                    doctor_n_p=client.doctor_name_p)
-            client = await self.client_repo.save_client(client)
+            await self.client_repo.save_client(client)
             return
         if client is not None:
             if client.consulate:
