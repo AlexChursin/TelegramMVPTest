@@ -68,13 +68,13 @@ class BotService:
             client.client_token = client_token
             client.consulate = await self.client_repo.new_consulate(user_id, chat_id)
             client.consulate.reason_petition = 'from web'
-            client.consulate.dialog_id = dialog_id,
-            client.consulate.select_is_emergency = is_emergency,
+            client.consulate.dialog_id = dialog_id
+            client.consulate.select_is_emergency = is_emergency
             client.consulate.cons_token = result.token
             await self.view.send_assistant_message(chat_id,
                                                    self.text_config.texts.continue_dialog,
                                                    doctor_n_p=client.doctor_name_p)
-            await self.client_repo.save_client(client)
+            client = await self.client_repo.save_client(client)
             return
         if client is not None:
             if client.consulate:
