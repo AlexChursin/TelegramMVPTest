@@ -57,8 +57,7 @@ class BotService:
         client = await self.client_repo.get_client(user_id)
         data, result = await _get_doctor_from_url(refer_url_text)
         if type(result) is ConsResult:
-            api_data, doctor_name, doctor_name_p = data
-            dialog_id, doc_token, client_token, is_emergency, client_name = api_data
+            dialog_id, doc_token, client_token, is_emergency, client_name, doctor_name, doctor_name_p = data
             if client is None:
                 client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id)
             client.doctor_name = doctor_name
