@@ -106,6 +106,7 @@ class BotService:
                                                            client_token=client_token, doctor_name_p=doctor_name_p)
             else:
                 client.doctor_name = doctor_name
+                client.status = State.dialog.value
                 client.doctor_name_p = doctor_name_p
                 client.doc_token = doc_token
             await self.client_repo.new_consulate(user_id, chat_id)
