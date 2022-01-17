@@ -86,30 +86,23 @@ class BotService:
         if type(result) is DoctorResult:
             doctor_name, doctor_name_p = data
             if client is None:
-                client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id,
-                                                           status=State.start_first.value,
-                                                           doctor_name=doctor_name, doc_token=result.token,
-                                                           doctor_name_p=doctor_name_p)
-            else:
-                client.status = State.start_first.value,
-                client.doctor_name = doctor_name
-                client.doc_token = result.token
-                client.doctor_name_p = doctor_name_p
+                client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id)
+            client.status = State.start_first.value,
+            client.doctor_name = doctor_name
+            client.doc_token = result.token
+            client.doctor_name_p = doctor_name_p
             await self._send_doctor_hello_message(client, token=result.token)
 
         if type(result) is ConsResult:
             dialog_id, doc_token, client_token, is_emergency, doctor_name, doctor_name_p, name = data
             if client is None:
-                client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id,
-                                                           status=State.dialog.value,
-                                                           doctor_name=doctor_name, doc_token=doc_token,
-                                                           client_token=client_token, doctor_name_p=doctor_name_p)
-            else:
-                client.doctor_name = doctor_name
-                client.status = State.dialog.value
-                client.doctor_name_p = doctor_name_p
-                client.doc_token = doc_token
-            await self.client_repo.new_consulate(user_id, chat_id)
+                client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id)
+            client.doctor_name = doctor_name
+            client.status = State.dialog.value
+            client.doctor_name_p = doctor_name_p
+            client.doc_token = doc_token
+            client.client_token = client_token
+            client.consulate = await self.client_repo.new_consulate(user_id, chat_id)
             client.consulate.reason_petition = 'from web'
             client.consulate.dialog_id = dialog_id,
             client.consulate.select_is_emergency = is_emergency,

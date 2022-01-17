@@ -41,9 +41,8 @@ class APIClientRepo(IClientRepo):
     async def get_client(self, user_id: int) -> Optional[TelegramClient]:
         return await self.api.get_client(user_id)
 
-    async def set_client(self, user_id: int, chat_id: int, status: int, doctor_name: str, doctor_name_p: str, doc_token: str, client_token: Optional[str] = None) -> Optional[TelegramClient]:
-        new_client = TelegramClient(user_id=user_id, chat_id=chat_id, status=status, doctor_token=doc_token,
-                                    client_token=client_token, doctor_name_p=doctor_name_p, doctor_name=doctor_name)
+    async def set_client(self, user_id: int, chat_id: int) -> Optional[TelegramClient]:
+        new_client = TelegramClient(user_id=user_id, chat_id=chat_id)
         client = await self.api.new_client(new_client)
 
         if client is None:
