@@ -55,6 +55,25 @@ class BotService:
     async def answer_on_start_command(self, chat_id: int, user_id: int, refer_url_text: str = '', username: str = '',
                                       firstname: str = '', lastname: str = ''):
         client = await self.client_repo.get_client(user_id)
+        data, result = await _get_doctor_from_url(refer_url_text)
+        if type(result) is ConsResult:
+            dialog_id, doc_token, client_token, is_emergency, doctor_name, doctor_name_p, name = data
+            if client is None:
+                client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id)
+            client.doctor_name = doctor_name
+            client.status = State.dialog.value
+            client.doctor_name_p = doctor_name_p
+            client.doctor_token = doc_token
+            client.client_token = client_token
+            client.consulate = await self.client_repo.new_consulate(user_id, chat_id)
+            client.consulate.reason_petition = 'from web'
+            client.consulate.dialog_id = dialog_id,
+            client.consulate.select_is_emergency = is_emergency,
+            client.consulate.cons_token = result.token
+            await self.view.send_assistant_message(chat_id,
+                                                   self.text_config.texts.continue_dialog,
+                                                   doctor_n_p=client.doctor_name_p)
+            return
         if client is not None:
             if client.consulate:
                 if client.consulate.cons_token:  # идет консультация
@@ -75,7 +94,6 @@ class BotService:
                                                                doctor_n_p=client.doctor_name_p)
                     return
 
-        data, result = await _get_doctor_from_url(refer_url_text)
         if result is None:
             if client is not None:
                 client.status = State.start_first.value
@@ -93,23 +111,7 @@ class BotService:
             client.doctor_name_p = doctor_name_p
             await self._send_doctor_hello_message(client, token=result.token)
 
-        if type(result) is ConsResult:
-            dialog_id, doc_token, client_token, is_emergency, doctor_name, doctor_name_p, name = data
-            if client is None:
-                client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id)
-            client.doctor_name = doctor_name
-            client.status = State.dialog.value
-            client.doctor_name_p = doctor_name_p
-            client.doctor_token = doc_token
-            client.client_token = client_token
-            client.consulate = await self.client_repo.new_consulate(user_id, chat_id)
-            client.consulate.reason_petition = 'from web'
-            client.consulate.dialog_id = dialog_id,
-            client.consulate.select_is_emergency = is_emergency,
-            client.consulate.cons_token = result.token
-            await self.view.send_assistant_message(chat_id,
-                                                   self.text_config.texts.continue_dialog,
-                                                   doctor_n_p=client.doctor_name_p)
+
         await self.client_repo.save_client(client)
 
     async def send_help(self, chat_id):
