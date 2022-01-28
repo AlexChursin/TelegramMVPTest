@@ -186,6 +186,7 @@ class BotService:
                                                    doctor_n_p=client.doctor_name_p)
             client.status = State.await_reason_petition_text.value
         await self.client_repo.save_client(client)
+        return client
 
     async def _finish(self, chat_id, client: TelegramClient) -> TelegramClient:
         if not client.consulate.select_is_emergency:
@@ -224,8 +225,7 @@ class BotService:
                 return
             if client.status is State.await_contacts.value:
                 if is_number(text):
-                    client.status = State.dialog.value
-                    await self.answer_on_contacts(chat_id, user_id, phone_text=text)
+                    client = await self.answer_on_contacts(chat_id, user_id, phone_text=text)
                 else:
                     await self.view.send_assistant_message(chat_id, text=self.text_config.texts.number_error,
                                                            doctor_n_p=client.doctor_name_p)
