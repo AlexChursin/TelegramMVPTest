@@ -4,7 +4,7 @@ from messenger_api import mess_api
 from telegram.main_logic_bot.client_repo.client_entity import Client
 from telegram.main_logic_bot.client_repo.client_provider import APIClientRepo
 from telegram.main_logic_bot.client_repo.user_bot_state import State
-from telegram.main_logic_bot.utils import get_refer, TokenResult
+from telegram.main_logic_bot.utils import get_cons_token
 
 doc_token = '9076fd887d83d240cb648e13b5d191f1'
 
@@ -27,9 +27,7 @@ async def test_set_client():
     doctor_name = 'Александр Владимирович'
     doctor_name_p = await mess_api.get_petrovich(*doctor_name.split())
     client_repo = APIClientRepo()
-    client = await client_repo.set_client(user_id=123, chat_id=222, status=State.start_first.value,
-                                          doctor_name=doctor_name, doc_token='9076fd887d83d240cb648e13b5d191f1',
-                                          doctor_name_p=doctor_name_p)
+    client = await client_repo.set_client(user_id=123, chat_id=222)
     assert client is not None
     client.status = State.await_contacts.value
     cons = await client_repo.new_consulate(client.user_id)
@@ -64,14 +62,14 @@ async def test_create_dialog():
 
 def test_get_refer():
     query_token = 'lfhd12jkduqwuihquxcmoewkf21312heuhhiudui'
-    res, token = get_refer(f'/start doc_{query_token}')
+    res, token = get_cons_token(f'/start doc_{query_token}')
     assert res is TokenResult.doctor
     assert token == query_token
 
-    res, token = get_refer(f'/start cons_{query_token}')
+    res, token = get_cons_token(f'/start cons_{query_token}')
     assert res is TokenResult.consulate
     assert token == query_token
 
-    res, token = get_refer(f'/start xxx')
+    res, token = get_cons_token(f'/start xxx')
     assert res is TokenResult.none
     assert token is None

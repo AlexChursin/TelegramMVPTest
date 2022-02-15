@@ -57,15 +57,6 @@ class TelegramView(IView):
 
         return markup
 
-    async def edit_bot_message(self, chat_id: int, text: str, message_id: int,
-                               inline_buttons: List[InlineViewButton] = None):
-        markup = self.__get_markup(inline_buttons)
-        await self._bot.edit_message_text(chat_id=chat_id,
-                                          text=text,
-                                          message_id=message_id,
-                                          reply_markup=markup,
-                                          parse_mode='HTML')
-
     async def send_phone_request(self, chat_id: int, text: str, doctor_name: str):
         markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True, one_time_keyboard=True)
         markup.add(types.KeyboardButton(text='Передать номер телефона', request_contact=True))
@@ -73,11 +64,10 @@ class TelegramView(IView):
             text = f'Ассистент <b>{doctor_name}:</b>\n{text}'
         await self._bot.send_message(chat_id, text=text, reply_markup=markup, parse_mode='HTML')
 
-    async def send_assistant_message(self, chat_id: int, text: str, doctor_n_p: Optional[str] = None,
+    async def send_assistant_message(self, chat_id: int, text: str,
                                      inline_buttons: List[InlineViewButton] = None, buttons: List[ViewButton] = None,
                                      close_buttons: bool = False):
         print(chat_id)
         markup = self.__get_markup(inline_buttons, buttons, close_buttons)
-        if doctor_n_p is not None:
-            text = f'Ассистент <b>{doctor_n_p}:</b>\n{text}'
+
         await self._bot.send_message(chat_id, text=text, reply_markup=markup, parse_mode='HTML')

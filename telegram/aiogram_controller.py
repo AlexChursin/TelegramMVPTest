@@ -83,20 +83,19 @@ async def text_message(message: Message):
 async def inline(call: CallbackQuery):
     try:
         await bot_service.answer_callback(chat_id=call.message.chat.id,
-                                          bot_message_id=call.message.message_id,
                                           user_id=call.from_user.id, callback_data=call.data)
         await bot.answer_callback_query(call.id, text='')
     except Exception as e:
         capture_exception(e)
 
-
-@dp.message_handler(content_types=['contact'])
-async def contact(message: Message):
-    # try:
-    if message.contact is not None:
-        await bot_service.answer_on_contacts(message.chat.id, message.from_user.id, message.contact.phone_number)
-    else:
-        pass
+#
+# @dp.message_handler(content_types=['contact'])
+# async def contact(message: Message):
+#     # try:
+#     if message.contact is not None:
+#         await bot_service.answer_on_contacts(message.chat.id, message.from_user.id, message.contact.phone_number)
+#     else:
+#         pass
 
 
 # except Exception as e:

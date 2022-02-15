@@ -17,7 +17,7 @@ class API:
     def __init__(self, url):
         self.url = url
 
-    async def get_doctor_name(self, token: str = None) -> Optional[str]:
+    async def get_doctor_name(self, token: str) -> str:
         try:
             if token is not None:
                 async with aiohttp.ClientSession() as session:
@@ -26,12 +26,10 @@ class API:
                             res = await r.json()
                             doctor = res['data']
                             return f"{doctor['first_name']} {doctor['middle_name']}"
-                        return 'Кристина Александровна'
-            else:
-                return None
+
         except Exception as e:
             capture_exception(e)
-        return None
+        return 'А А'
 
     async def get_client_from_cons(self, token: str) -> Optional[Tuple[int, str, str, bool, str]]:
         try:
@@ -137,6 +135,27 @@ class API:
         except Exception as e:
             capture_exception(e)
         return None
+
+    async def get_doctor_messages(self, dialog_id: int, token: str) -> list:
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f'{self.url}/dialog/{dialog_id}/message/?token={token}') as r:
+                    if r.status == HTTPStatus.OK:
+                        res = await r.json()
+                        return res['data']
+        except Exception as e:
+            capture_exception(e)
+        return []
+
+    async def get_file_bytes(self, path: str) -> bytes:
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f'{self.url}/dialog/{path}') as r:
+                    if r.status == HTTPStatus.OK:
+                        return await r.content.read()
+        except Exception as e:
+            capture_exception(e)
+        return []
 
     async def send_patient_document(self, dialog_id: int, filename: str, data: BytesIO) -> bool:
         try:

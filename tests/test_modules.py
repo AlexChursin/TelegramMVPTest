@@ -20,8 +20,8 @@ async def test_old_user():
     await bot_service.answer_on_start_command(chat_id, user_id, f'start doc_{doc_token}')
     assert 'Здравствуйте, это ассистен' in Answers.last
     b = MyButton(label='выбрал завтра', data='2morrow', type_value=ButtonCollection.start_b.value)
-    await bot_service.answer_callback(chat_id, chat_id, user_id, b.to_callback())
+    await bot_service.answer_callback(chat_id, user_id, b.to_callback())
     assert 'Выберите время консультации на' in Answers.last
     callback = MyButton(label='выбрал время', data='1', type_value=ButtonCollection.time_button.value).to_callback()
-    await bot_service.answer_callback(chat_id, chat_id, user_id, callback)
+    await bot_service.answer_callback(chat_id, user_id, callback)
     assert 'акова причина вашего обращения' in Answers.last

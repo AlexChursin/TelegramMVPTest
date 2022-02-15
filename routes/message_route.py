@@ -19,7 +19,7 @@ class DialogMessage(BaseModel):
 class FinishMessage(BaseModel):
     dialog_id: int
     text: str
-    doctor_name: Optional[str] = Query(None, description='Имя доктора в падеже. Если добавить это поле, то сообщение будет отправлено от имени ассистента')
+    doctor_name: Optional[str] = Query(None, description='Можно оставить пустым, сообщение от имени ассистента')
 
 
 @message_route.post("/send/text_message", response_model=Message, responses={404: {"model": ErrorMessage}})
@@ -46,11 +46,8 @@ async def finish_message(dialog_message: FinishMessage):
 @message_route.post("/send/file_message", response_model=Message, responses={404: {"model": ErrorMessage}})
 async def file_message(dialog_id: int, doctor_name: str, file: UploadFile = File(...)):
     consulate = await mess_api.get_consulate(dialog_id)
-
     if consulate is not None:
         await bot_service.send_file_from_doctor(consulate.chat_id, data=await file.read(), filename=file.filename, doctor_name=doctor_name)
         return Message(chat_id=consulate.chat_id)
     else:
         return JSONResponse(status_code=404, content={'detail': 'Consulate not found'})
-
-
