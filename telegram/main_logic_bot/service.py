@@ -41,13 +41,13 @@ class BotService:
     async def answer_on_start_command(self, chat_id: int, user_id: int, refer_url_text: str = '', username: str = '',
                                       firstname: str = '', lastname: str = ''):
         client = await self.client_repo.get_client(user_id)
-        load_new_message = False
-        if client is None:
-            load_new_message = True
-            client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id)
+        old_messages = []
         cons_info = await _get_doctor_from_url(refer_url_text)
         if cons_info is None:
             return
+        if client is None:
+            client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id)
+            old_messages = await back_api.get_doctor_messages(dialog_id=cons_info.dialog_id, token=cons_info.doc_token)
         client.status = State.dialog.value
         client.doctor_token = cons_info.doc_token
         client.client_token = cons_info.patient_token
@@ -58,19 +58,20 @@ class BotService:
         client.consulate.cons_token = cons_info.cons_token
         await self.view.send_message_doctor(chat_id, text=self.text_config.texts.continue_dialog,
                                             doctor_name=cons_info.doctor_name)
-        if load_new_message:
-            messages = await back_api.get_doctor_messages(dialog_id=cons_info.dialog_id, token=cons_info.doc_token)
-            for mes in messages:
-                if mes['_type'] == 'text':
-                    await self.view.send_message_doctor(chat_id, text=mes['text'],
-                                                        doctor_name=cons_info.doctor_name)
-                if mes['_type'] == 'file':
-                    await self.view.send_file_from_doctor(chat_id,
-                                                          data=await back_api.get_file_bytes(mes['file']['path']),
-                                                          doctor_name=cons_info.doctor_name,
-                                                          filename=mes['file']['name'])
 
+        await self._send_old_mes(old_messages, chat_id, cons_info.doctor_name)
         await self.client_repo.save_client(client)
+
+    async def _send_old_mes(self, old_messages, chat_id, doctor_name):
+        for mes in old_messages:
+            if mes['_type'] == 'text':
+                await self.view.send_message_doctor(chat_id, text=mes['text'],
+                                                    doctor_name=doctor_name)
+            if mes['_type'] == 'file':
+                await self.view.send_file_from_doctor(chat_id,
+                                                      data=await back_api.get_file_bytes(mes['file']['path']),
+                                                      doctor_name=doctor_name,
+                                                      filename=mes['file']['name'])
 
     async def send_help(self, chat_id):
         text = self.text_config.texts.help
@@ -98,8 +99,16 @@ class BotService:
             await self.answer_on_start_command(chat_id, user_id)
             return
 
-        elif client.status is State.dialog.value:
-            if client.consulate.dialog_id is not None:
+        elif client.status is State.dialog.value and client.consulate:
+            if text == self.text_config.buttons.reject_consulate:
+                await back_api.send_reject_cons(client.client_token, client.consulate.cons_token)
+                await self.view.send_assistant_message(chat_id, text=self.text_config.texts.reject_consulate,
+                                                       close_buttons=True)
+                client.status = State.start_first.value
+                client.consulate = None
+                await self.client_repo.save_client(client)
+                await self.answer_on_start_command(chat_id, user_id)
+            elif client.consulate.dialog_id is not None:
                 is_send = await back_api.send_patient_text_message(text=text,
                                                                    dialog_id=client.consulate.dialog_id)
                 if not is_send:

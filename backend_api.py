@@ -29,7 +29,7 @@ class API:
 
         except Exception as e:
             capture_exception(e)
-        return 'А А'
+        return '- -'
 
     async def get_client_from_cons(self, token: str) -> Optional[Tuple[int, str, str, bool, str]]:
         try:
