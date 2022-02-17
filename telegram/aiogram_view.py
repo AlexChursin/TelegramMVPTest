@@ -17,6 +17,7 @@ class TelegramView(IView):
                                      vcard="BEGIN:VCARD\n" +
                                            "VERSION:3.0\n" +
                                            "N:Solo;Han\n" +
+                                           "NOTE:Новая консультация\n" +
                                            # "ORG:Организация ассистент\n" +
                                            f"URL:https://doc-crm.net/?doc_token={doc_token}\n" +
                                            # f"URL:https://t.me/{BOT_NAME}?start=doc_{doc_token}\n"
@@ -32,9 +33,10 @@ class TelegramView(IView):
     def __init__(self):
         self._bot: Bot = bot
 
-    async def send_file_from_doctor(self, chat_id: int, data: bytes, filename: str, doctor_name: str):
-        b = BytesIO(data)
-        await self._bot.send_document(chat_id, document=InputFile(b), caption=filename)
+    async def send_file_from_doctor(self, chat_id: int, data: Optional[bytes], filename: str, doctor_name: str):
+        if data:
+            b = BytesIO(data)
+            await self._bot.send_document(chat_id, document=InputFile(b), caption=filename)
 
     async def delete_message(self, chat_id: int, message_id: int):
         await self._bot.delete_message(chat_id, message_id=message_id)
@@ -47,7 +49,7 @@ class TelegramView(IView):
         if inline_buttons is not None:
             markup = types.InlineKeyboardMarkup(row_width=1)
             for button in inline_buttons:
-                markup.add(types.InlineKeyboardButton(text=button.text, callback_data=button.callback))
+                markup.add(types.InlineKeyboardButton(text=button.text, url=button.url, callback_data=button.callback))
         if buttons is not None:
             markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
             for button in buttons:

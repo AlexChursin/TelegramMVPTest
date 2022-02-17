@@ -47,10 +47,10 @@ def get_time_buttons(list_times: List[Schedule]):
     return buttons
 
 
-def get_finish_buttons(text_rec, text_new_query):
+def get_finish_buttons(text_rec, text_new_query, url_new_cons):
     b_rec = MyButton(label='recommend', data='r', type_value=ButtonCollection.recommend_friends.value)
     b_query = MyButton(label='new', data='new', type_value=ButtonCollection.new_query.value)
     buttons = [InlineViewButton(callback=b_rec.to_callback(), text=text_rec),
-               InlineViewButton(callback=b_query.to_callback(), text=text_new_query)]
+               InlineViewButton(callback=b_query.to_callback(), text=text_new_query, url=url_new_cons)]
 
     return buttons

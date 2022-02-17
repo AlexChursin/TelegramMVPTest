@@ -6,6 +6,8 @@ from typing import Optional
 class InlineViewButton:
     callback: str
     text: str
+    url: Optional[str] = None
+
 
 
 @dataclass

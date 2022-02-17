@@ -139,7 +139,7 @@ class API:
     async def get_doctor_messages(self, dialog_id: int, token: str) -> list:
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(f'{self.url}/dialog/{dialog_id}/message/?token={token}') as r:
+                async with session.get(f'{self.url}/dialog/{dialog_id}/message?token={token}') as r:
                     if r.status == HTTPStatus.OK:
                         res = await r.json()
                         return res['data']
@@ -147,7 +147,7 @@ class API:
             capture_exception(e)
         return []
 
-    async def get_file_bytes(self, path: str) -> bytes:
+    async def get_file_bytes(self, path: str) -> Optional[bytes]:
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(f'{self.url}/dialog/{path}') as r:
@@ -155,7 +155,7 @@ class API:
                         return await r.content.read()
         except Exception as e:
             capture_exception(e)
-        return []
+        return None
 
     async def send_patient_document(self, dialog_id: int, filename: str, data: BytesIO) -> bool:
         try:
