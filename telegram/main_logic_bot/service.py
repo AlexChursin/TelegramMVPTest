@@ -38,6 +38,7 @@ class BotService:
         old_messages = []
         cons_info = await _get_doctor_from_url(refer_url_text)
         if cons_info is None:
+            await self.view.send_assistant_message(chat_id, text=self.text_config.texts.error_token)
             return
         if client is None:
             client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id)
