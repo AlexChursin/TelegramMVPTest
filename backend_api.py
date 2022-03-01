@@ -39,7 +39,7 @@ class API:
                         res = await r.json()
                         data = res['data']
                         is_emergency = True if data['is_emergency'] == 1 else False
-                        name = data['patient']['first_name'] + ' ' + data['patient']['middle_name']
+                        name = f"{data['patient']['first_name']} {data['patient']['middle_name']}"
                         return data['dialog_id'], data['doc_token'], data['patient']['token'], is_emergency, name
         except Exception as e:
             capture_exception(e)
