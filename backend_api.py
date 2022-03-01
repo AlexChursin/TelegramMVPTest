@@ -152,7 +152,6 @@ class API:
             body = {
                 "cons_token": cons_token,
                 "first_name": first_name,
-                "phone": phone,
                 "middle_name": middle_name
             }
             async with aiohttp.ClientSession() as session:
