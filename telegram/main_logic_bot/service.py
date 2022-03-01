@@ -54,7 +54,7 @@ class BotService:
         client.doctor_name = cons_info.doctor_name
         client.consulate.select_is_emergency = cons_info.is_emergency
         client.consulate.cons_token = cons_info.cons_token
-        await self.view.send_assistant_message(chat_id, text=self.text_config.texts.continue_dialog)
+        await self.view.send_assistant_message(chat_id, text=self.text_config.texts.continue_dialog.format(doctor_name=cons_info.doctor_name))
 
         await self._send_old_mes(old_messages, chat_id, cons_info.doctor_name)
         await self.client_repo.save_client(client)
