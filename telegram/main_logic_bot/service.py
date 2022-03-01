@@ -46,6 +46,7 @@ class BotService:
         await back_api.send_confirm_cons(cons_token=cons_info.cons_token, first_name=firstname, middle_name=lastname)
         client.status = State.dialog.value
         client.doctor_token = cons_info.doc_token
+        client.first_middle_name = f'{firstname} {lastname} @{username}'
         client.client_token = cons_info.patient_token
         client.consulate = await self.client_repo.new_consulate(user_id, chat_id)
         client.consulate.reason_petition = 'web'
