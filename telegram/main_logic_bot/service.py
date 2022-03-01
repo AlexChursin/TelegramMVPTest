@@ -43,6 +43,7 @@ class BotService:
         if client is None:
             client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id)
             old_messages = await back_api.get_doctor_messages(dialog_id=cons_info.dialog_id, token=cons_info.cons_token)
+        await back_api.send_confirm_cons(cons_token=cons_info.cons_token, first_name=firstname, middle_name=lastname)
         client.status = State.dialog.value
         client.doctor_token = cons_info.doc_token
         client.client_token = cons_info.patient_token

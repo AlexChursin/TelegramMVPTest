@@ -22,8 +22,8 @@ async def on_start_command(message: Message):
         await bot_service.answer_on_start_command(chat_id=message.chat.id, user_id=message.from_user.id,
                                                   refer_url_text=message.text,
                                                   username=message.from_user.username,
-                                                  firstname=message.from_user.username,
-                                                  lastname=message.from_user.username)
+                                                  firstname=message.from_user.first_name,
+                                                  lastname=message.from_user.last_name)
 
 
     except Exception as e:
