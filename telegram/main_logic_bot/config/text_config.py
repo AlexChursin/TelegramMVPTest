@@ -21,6 +21,7 @@ class Texts(BaseModel):
     number: str
     number_error: str
     finish: str
+    after_send_number: str
     finish_emb: str
     recommend_friend: str
     continue_dialog: str

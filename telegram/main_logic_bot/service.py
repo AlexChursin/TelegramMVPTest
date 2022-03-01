@@ -13,6 +13,7 @@ from .client_repo.user_bot_state import State
 from .config.text_config import TextBot
 from .service_funcs import _get_doctor_from_url
 from .steps.keyboards import get_finish_buttons
+from ..utils import fix_number
 
 
 def traces_sampler(sampling_context):
@@ -43,8 +44,7 @@ class BotService:
         if client is None:
             client = await self.client_repo.set_client(user_id=user_id, chat_id=chat_id)
             old_messages = await back_api.get_doctor_messages(dialog_id=cons_info.dialog_id, token=cons_info.cons_token)
-        await back_api.send_confirm_cons(cons_token=cons_info.cons_token, first_name=firstname, middle_name=lastname)
-        client.status = State.dialog.value
+
         client.doctor_token = cons_info.doc_token
         client.first_middle_name = f'{firstname} {lastname} @{username}'
         client.client_token = cons_info.patient_token
@@ -54,9 +54,18 @@ class BotService:
         client.doctor_name = cons_info.doctor_name
         client.consulate.select_is_emergency = cons_info.is_emergency
         client.consulate.cons_token = cons_info.cons_token
-        await self.view.send_assistant_message(chat_id, text=self.text_config.texts.continue_dialog.format(doctor_name=cons_info.doctor_name))
-
         await self._send_old_mes(old_messages, chat_id, cons_info.doctor_name)
+
+        await self.view.send_assistant_message(chat_id, text=self.text_config.texts.continue_dialog.format(doctor_name=cons_info.doctor_name))
+        if client.phone:
+            client.status = State.dialog.value
+            await back_api.send_confirm_cons(cons_token=client.consulate.cons_token,
+                                             first_name=firstname,
+                                             middle_name=lastname,
+                                             phone=client.phone)
+        else:
+            client.status = State.await_contacts.value
+            await self.view.send_phone_request(chat_id, self.text_config.texts.number)
         await self.client_repo.save_client(client)
 
     async def _send_old_mes(self, old_messages, chat_id, doctor_name):
@@ -92,10 +101,12 @@ class BotService:
         if client is None:
             await self.answer_on_start_command(chat_id, user_id)
             return
-        if client.status is State.start_first.value:
+        elif client.status is State.start_first.value:
             await self.answer_on_start_command(chat_id, user_id)
             return
-
+        elif client.status is State.await_contacts.value:
+            await self.view.send_phone_request(chat_id, self.text_config.texts.number)
+            return
         elif client.status is State.dialog.value and client.consulate:
             if client.consulate.dialog_id:
                 is_send = await back_api.send_patient_text_message(text=text,
@@ -131,6 +142,25 @@ class BotService:
             await self.client_repo.save_client(client)
             return client.chat_id
         return None
+
+    async def reset_user(self, chat_id: int, user_id: int):
+        await self.client_repo.set_client(chat_id, user_id)
+
+    async def answer_on_contacts(self, user_id: int, chat_id: int, phone_text: str, firstname: str, lastname: str):
+        client = await self.client_repo.get_client(user_id)
+        if client is not None:
+            if client.status is State.await_contacts.value and client.consulate:
+                client.phone = fix_number(phone_text)
+                client.status = State.dialog.value
+                await back_api.send_confirm_cons(cons_token=client.consulate.cons_token,
+                                                 first_name=firstname,
+                                                 middle_name=lastname,
+                                                 phone=client.phone)
+                await self.view.send_assistant_message(chat_id, text=self.text_config.texts.after_send_number)
+                await self.client_repo.save_client(client)
+            else:
+                await self.view.send_assistant_message(chat_id, text=self.text_config.texts.error_token)
+
 
     async def send_message_doctor(self, chat_id, text: str, doctor_name: str):
         await self.view.send_message_doctor(chat_id=chat_id, text=text, doctor_name=doctor_name)

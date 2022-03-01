@@ -42,12 +42,12 @@ class APIClientRepo(IClientRepo):
         return await self.api.get_client(user_id)
 
     async def set_client(self, user_id: int, chat_id: int) -> Optional[TelegramClient]:
-        new_client = TelegramClient(user_id=user_id, chat_id=chat_id)
-        client = await self.api.new_client(new_client)
+        client = TelegramClient(user_id=user_id, chat_id=chat_id)
+        is_updated = await self.api.update_client(client)
 
-        if client is None:
-            return await self.save_client(new_client)
-        return client
+        if is_updated:
+            return client
+        return None
 
     async def save_client(self, client: TelegramClient) -> Optional[TelegramClient]:
         is_updated = await self.api.update_client(client)

@@ -6,7 +6,7 @@ from typing import List, Optional, Tuple
 
 import aiohttp
 from aiohttp import FormData
-from sentry_sdk import capture_exception
+from sentry_sdk import capture_exception, capture_message
 
 from telegram.config import URL_API_BACKEND
 from telegram.main_logic_bot.bot_entity import Schedule
@@ -147,16 +147,20 @@ class API:
             capture_exception(e)
         return []
 
-    async def send_confirm_cons(self, cons_token: str, first_name: str, middle_name: str):
+    async def send_confirm_cons(self, cons_token: str, first_name: str, middle_name: str, phone: str):
         try:
             body = {
                 "cons_token": cons_token,
                 "first_name": first_name,
+                "phone": phone,
                 "middle_name": middle_name
             }
             async with aiohttp.ClientSession() as session:
                 async with session.post(f'{self.url}/consultation/confirm', json=body) as r:
-                    await r.json()
+                    if r.status == HTTPStatus.OK:
+                        await r.json()
+                    else:
+                        capture_message(f'{self.url}/consultation/confirm status: {r.status}, body: {body}')
         except Exception as e:
             capture_exception(e)
 

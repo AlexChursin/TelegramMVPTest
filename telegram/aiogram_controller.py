@@ -14,8 +14,6 @@ def get_config_from_file():
         open('telegram/main_logic_bot/config/bot_text_word.json', 'r', encoding='UTF-8')))
 
 
-
-
 @dp.message_handler(commands=['start'])
 async def on_start_command(message: Message):
     try:
@@ -35,7 +33,6 @@ async def info_message(message):
     await bot_service.send_help(chat_id=message.chat.id)
 
 
-
 @dp.message_handler(commands=['recommend'])
 async def info_message(message):
     await bot_service.send_recommend(user_id=message.from_user.id, chat_id=message.chat.id)
@@ -52,14 +49,14 @@ async def photo_image(message: Message):
         capture_exception(e)
 
 
-
 @dp.message_handler(content_types=['document'])
 async def photo_document(message: Message):
     try:
         file_id = message.document.file_id
         file = await bot.get_file(file_id)
         result = await bot.download_file(file.file_path)
-        await bot_service.send_file_to_doctor(user_id=message.from_user.id, filename=message.document.file_name, bytes_oi=result)
+        await bot_service.send_file_to_doctor(user_id=message.from_user.id, filename=message.document.file_name,
+                                              bytes_oi=result)
 
     except Exception as e:
         capture_exception(e)
@@ -67,7 +64,10 @@ async def photo_document(message: Message):
 
 @dp.message_handler(commands=['reset'])
 async def info_message(message):
-    await bot_service.reset_user(chat_id=message.chat.id, user_id=message.from_user.id)
+    try:
+        await bot_service.reset_user(chat_id=message.chat.id, user_id=message.from_user.id)
+    except Exception as e:
+        capture_exception(e)
 
 
 @dp.message_handler()
@@ -88,14 +88,18 @@ async def inline(call: CallbackQuery):
     except Exception as e:
         capture_exception(e)
 
-#
-# @dp.message_handler(content_types=['contact'])
-# async def contact(message: Message):
-#     # try:
-#     if message.contact is not None:
-#         await bot_service.answer_on_contacts(message.chat.id, message.from_user.id, message.contact.phone_number)
-#     else:
-#         pass
+
+@dp.message_handler(content_types=['contact'])
+async def contact(message: Message):
+    # try:
+    if message.contact is not None:
+        await bot_service.answer_on_contacts(user_id=message.from_user.id,
+                                             chat_id=message.chat.id,
+                                             phone_text=message.contact.phone_number,
+                                              firstname=message.from_user.first_name,
+                                              lastname=message.from_user.last_name)
+    else:
+        pass
 
 
 # except Exception as e:
