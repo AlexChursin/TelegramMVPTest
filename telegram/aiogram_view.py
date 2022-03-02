@@ -26,7 +26,7 @@ class TelegramView(IView):
                                            "END:VCARD")
 
     async def send_message_doctor(self, chat_id: int, text: str, doctor_name: str):
-        text = f"<b>{doctor_name}</b>\n{text}"
+        text = f"<b>{doctor_name}:</b>\n{text}"
         markup = types.ReplyKeyboardRemove()
         await self._bot.send_message(chat_id, text=text, parse_mode='HTML', reply_markup=markup)
 
