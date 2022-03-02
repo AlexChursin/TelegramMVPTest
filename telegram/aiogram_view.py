@@ -16,12 +16,12 @@ class TelegramView(IView):
                                      last_name=doctor_name.split()[1],
                                      vcard="BEGIN:VCARD\n" +
                                            "VERSION:3.0\n" +
-                                           "N:Solo;Han\n" +
+                                           # "N:Solo;Han\n" +
                                            "NOTE:Новая консультация\n" +
                                            # "ORG:Организация ассистент\n" +
                                            f"URL:https://doc-crm.net/?doc_token={doc_token}\n" +
                                            # f"URL:https://t.me/{BOT_NAME}?start=doc_{doc_token}\n"
-                                           "TEL;TYPE=celular:*\n" +
+                                           # "TEL;TYPE=celular:*\n" +
                                            # "EMAIL:hansolo@mfalcon.com\n" +
                                            "END:VCARD")
 
