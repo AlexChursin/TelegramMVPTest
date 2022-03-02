@@ -152,7 +152,8 @@ class API:
             body = {
                 "cons_token": cons_token,
                 "first_name": first_name,
-                "middle_name": middle_name
+                "middle_name": middle_name,
+                "phone": phone
             }
             async with aiohttp.ClientSession() as session:
                 async with session.post(f'{self.url}/consultation/confirm', json=body) as r:
