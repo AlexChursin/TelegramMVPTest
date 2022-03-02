@@ -21,7 +21,7 @@ class TelegramView(IView):
                                            # "ORG:Организация ассистент\n" +
                                            f"URL:https://doc-crm.net/?doc_token={doc_token}\n" +
                                            # f"URL:https://t.me/{BOT_NAME}?start=doc_{doc_token}\n"
-                                           "TEL:*\n" +
+                                           "TEL;VALUE=uri;TYPE=text:*\n" +
                                            # "EMAIL:hansolo@mfalcon.com\n" +
                                            "END:VCARD")
 
