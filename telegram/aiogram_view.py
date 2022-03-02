@@ -17,7 +17,7 @@ class TelegramView(IView):
                                      vcard="BEGIN:VCARD\n" +
                                            "VERSION:3.0\n" +
                                            # "N:Solo;Han\n" +
-                                           "NOTE:Новая консультация\n" +
+                                           "NOTE:Для связи кликните на ссылку\n" +
                                            # "ORG:Организация ассистент\n" +
                                            f"URL:https://doc-crm.net/?doc_token={doc_token}\n" +
                                            # f"URL:https://t.me/{BOT_NAME}?start=doc_{doc_token}\n"
