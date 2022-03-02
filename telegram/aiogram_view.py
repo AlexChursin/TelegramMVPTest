@@ -49,7 +49,7 @@ class TelegramView(IView):
     @staticmethod
     def __get_markup(inline_buttons: List[InlineViewButton] = None, buttons: List[ViewButton] = None,
                      close_buttons: bool = False) -> Optional[InlineKeyboardMarkup]:
-        markup = None
+        markup = types.ReplyKeyboardRemove()
 
         if inline_buttons is not None:
             markup = types.InlineKeyboardMarkup(row_width=1)

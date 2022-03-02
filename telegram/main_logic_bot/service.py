@@ -56,9 +56,11 @@ class BotService:
         client.consulate.cons_token = cons_info.cons_token
         await self._send_old_mes(old_messages, chat_id, cons_info.doctor_name)
 
-        await self.view.send_assistant_message(chat_id, text=self.text_config.texts.continue_dialog.format(doctor_name=cons_info.doctor_name))
+
         if client.phone:
             client.status = State.dialog.value
+            await self.view.send_assistant_message(chat_id, text=self.text_config.texts.continue_dialog.format(
+                doctor_name=cons_info.doctor_name))
             await back_api.send_confirm_cons(cons_token=client.consulate.cons_token,
                                              first_name=firstname,
                                              middle_name=lastname,
@@ -156,7 +158,8 @@ class BotService:
                                                  first_name=firstname,
                                                  middle_name=lastname,
                                                  phone=client.phone)
-                await self.view.send_assistant_message(chat_id, text=self.text_config.texts.after_send_number)
+                await self.view.send_assistant_message(chat_id, text=self.text_config.texts.continue_dialog.format(
+                    doctor_name=client.doctor_name))
                 await self.client_repo.save_client(client)
             else:
                 await self.view.send_assistant_message(chat_id, text=self.text_config.texts.error_token)
