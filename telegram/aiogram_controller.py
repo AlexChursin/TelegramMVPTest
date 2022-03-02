@@ -70,6 +70,14 @@ async def info_message(message):
         capture_exception(e)
 
 
+@dp.message_handler(commands=['finish'])
+async def info_message(message):
+    try:
+        await bot_service.finish_consulate(chat_id=message.chat.id, user_id=message.from_user.id, text='finish')
+    except Exception as e:
+        capture_exception(e)
+
+
 @dp.message_handler()
 async def text_message(message: Message):
     try:
