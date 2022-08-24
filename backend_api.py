@@ -147,7 +147,7 @@ class API:
             capture_exception(e)
         return []
 
-    async def send_confirm_cons(self, cons_token: str, first_name: str, middle_name: str, phone: str):
+    async def send_confirm_cons(self, cons_token: str, first_name: str, middle_name: str, phone: str) -> Optional[dict]:
         try:
             body = {
                 "cons_token": cons_token,
@@ -157,13 +157,13 @@ class API:
             }
             async with aiohttp.ClientSession() as session:
                 async with session.post(f'{self.url}/consultation/confirm', json=body) as r:
-                    if r.status == HTTPStatus.OK:
-                        await r.json()
-                    else:
+                    if r.status != HTTPStatus.OK:
                         capture_message(f'{self.url}/consultation/confirm status: {r.status}, body: {body}')
+                        data = await r.json()
+                    if 'ok' in data:
+                        return data
         except Exception as e:
             capture_exception(e)
-
 
     async def get_file_bytes(self, path: str) -> Optional[bytes]:
         try:

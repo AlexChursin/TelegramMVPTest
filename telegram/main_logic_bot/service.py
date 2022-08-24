@@ -56,15 +56,17 @@ class BotService:
         client.consulate.cons_token = cons_info.cons_token
         await self._send_old_mes(old_messages, chat_id, cons_info.doctor_name)
 
-
         if client.phone:
             client.status = State.dialog.value
             await self.view.send_assistant_message(chat_id, text=self.text_config.texts.continue_dialog.format(
                 doctor_name=cons_info.doctor_name))
-            await back_api.send_confirm_cons(cons_token=client.consulate.cons_token,
-                                             first_name=firstname,
-                                             middle_name=lastname,
-                                             phone=client.phone)
+            api_data = await back_api.send_confirm_cons(cons_token=client.consulate.cons_token,
+                                                        first_name=firstname,
+                                                        middle_name=lastname,
+                                                        phone=client.phone)
+            if api_data:
+                if not api_data['ok']:
+                    await self.view.send_assistant_message(chat_id, text=api_data['error']['text'])
         else:
             client.status = State.await_contacts.value
             await self.view.send_phone_request(chat_id, self.text_config.texts.number)
@@ -138,7 +140,7 @@ class BotService:
                                                    inline_buttons=get_finish_buttons(
                                                        self.text_config.buttons.recommend_friend,
                                                        self.text_config.buttons.new_query,
-                                                   url_new_cons=f'https://doc-crm.net/?doc_token={client.doctor_token}'))
+                                                       url_new_cons=f'https://doc-crm.net/?doc_token={client.doctor_token}'))
             client.status = State.start_first.value
             client.consulate = None
             await self.client_repo.save_client(client)
@@ -154,16 +156,18 @@ class BotService:
             if client.status is State.await_contacts.value and client.consulate:
                 client.phone = fix_number(phone_text)
                 client.status = State.dialog.value
-                await back_api.send_confirm_cons(cons_token=client.consulate.cons_token,
-                                                 first_name=firstname,
-                                                 middle_name=lastname,
-                                                 phone=client.phone)
+                api_data = await back_api.send_confirm_cons(cons_token=client.consulate.cons_token,
+                                                            first_name=firstname,
+                                                            middle_name=lastname,
+                                                            phone=client.phone)
+                if api_data:
+                    if not api_data['ok']:
+                        await self.view.send_assistant_message(chat_id, text=api_data['error']['text'])
                 await self.view.send_assistant_message(chat_id, text=self.text_config.texts.continue_dialog.format(
                     doctor_name=client.doctor_name))
                 await self.client_repo.save_client(client)
             else:
                 await self.view.send_assistant_message(chat_id, text=self.text_config.texts.error_token)
-
 
     async def send_message_doctor(self, chat_id, text: str, doctor_name: str):
         await self.view.send_message_doctor(chat_id=chat_id, text=text, doctor_name=doctor_name)
