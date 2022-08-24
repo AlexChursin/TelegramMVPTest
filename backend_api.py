@@ -160,8 +160,8 @@ class API:
                     if r.status != HTTPStatus.OK:
                         capture_message(f'{self.url}/consultation/confirm status: {r.status}, body: {body}')
                         data = await r.json()
-                    if 'ok' in data:
-                        return data
+                        if 'ok' in data:
+                            return data
         except Exception as e:
             capture_exception(e)
 
