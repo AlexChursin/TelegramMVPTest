@@ -147,7 +147,7 @@ class API:
             capture_exception(e)
         return []
 
-    async def send_confirm_cons(self, cons_token: str, first_name: str, middle_name: str, phone: str) -> Optional[dict]:
+    async def send_confirm_cons(self, cons_token: str, first_name: str, middle_name: str, phone: str) -> dict:
         try:
             body = {
                 "cons_token": cons_token,
@@ -164,6 +164,7 @@ class API:
                             return data
         except Exception as e:
             capture_exception(e)
+        return {'ok': True}
 
     async def get_file_bytes(self, path: str) -> Optional[bytes]:
         try:
