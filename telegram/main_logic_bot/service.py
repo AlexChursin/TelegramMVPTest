@@ -48,12 +48,6 @@ class BotService:
         client.doctor_token = cons_info.doc_token
         client.first_middle_name = f'{firstname} {lastname} @{username}'
         client.client_token = cons_info.patient_token
-        client.consulate = await self.client_repo.new_consulate(user_id, chat_id)
-        client.consulate.reason_petition = 'web'
-        client.consulate.dialog_id = cons_info.dialog_id
-        client.doctor_name = cons_info.doctor_name
-        client.consulate.select_is_emergency = cons_info.is_emergency
-        client.consulate.cons_token = cons_info.cons_token
         await self._send_old_mes(old_messages, chat_id, cons_info.doctor_name)
 
         if client.phone:
@@ -62,11 +56,17 @@ class BotService:
                                                         first_name=firstname,
                                                         middle_name=lastname,
                                                         phone=client.phone)
-            if not api_data['ok']:
-                await self.view.send_assistant_message(chat_id, text=api_data['error']['text'])
-            else:
+            if api_data['ok']:
+                client.consulate = await self.client_repo.new_consulate(user_id, chat_id)
+                client.consulate.reason_petition = 'web'
+                client.consulate.dialog_id = cons_info.dialog_id
+                client.doctor_name = cons_info.doctor_name
+                client.consulate.select_is_emergency = cons_info.is_emergency
+                client.consulate.cons_token = cons_info.cons_token
                 await self.view.send_assistant_message(chat_id, text=self.text_config.texts.continue_dialog.format(
                     doctor_name=cons_info.doctor_name))
+            else:
+                await self.view.send_assistant_message(chat_id, text=api_data['error']['text'])
         else:
             client.status = State.await_contacts.value
             await self.view.send_phone_request(chat_id, self.text_config.texts.number)
