@@ -52,7 +52,7 @@ class BotService:
 
         if client.phone:
             client.status = State.dialog.value
-            api_data = await back_api.send_confirm_cons(cons_token=client.consulate.cons_token,
+            api_data = await back_api.send_confirm_cons(cons_token=cons_info.cons_token,
                                                         first_name=firstname,
                                                         middle_name=lastname,
                                                         phone=client.phone)
