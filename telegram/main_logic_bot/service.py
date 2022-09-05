@@ -148,7 +148,9 @@ class BotService:
         return None
 
     async def reset_user(self, chat_id: int, user_id: int):
-        await self.client_repo.set_client(chat_id, user_id)
+        client = await self.client_repo.set_client(chat_id, user_id)
+        if client:
+            await self.view.send_assistant_message(chat_id, text=f"Пользователь {client.chat_id} сброшен")
 
     async def answer_on_contacts(self, user_id: int, chat_id: int, phone_text: str, firstname: str, lastname: str):
         client = await self.client_repo.get_client(user_id)
