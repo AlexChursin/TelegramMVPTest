@@ -67,8 +67,7 @@ class BotService:
                 await self.view.send_assistant_message(chat_id, text=self.text_config.texts.continue_dialog.format(
                     doctor_name=cons_info.doctor_name))
             else:
-                client.consulate = None
-                await self.view.send_assistant_message(chat_id, text=api_data['error']['text'], close_buttons=True)
+                await self.view.send_assistant_message(chat_id, text=api_data['error']['text'])
         else:
             client.status = State.await_contacts.value
             await self.view.send_phone_request(chat_id, self.text_config.texts.number)
