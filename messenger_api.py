@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Optional, List
+from typing import Optional
 
 import aiohttp
 import requests
@@ -7,7 +7,6 @@ import requests
 from telegram import config
 from telegram.main_logic_bot.client_repo.client_entity import TelegramClient, Consulate
 from telegram.main_logic_bot.config.text_config import Texts, TextBot
-from sentry_sdk import capture_exception
 
 
 class MessengerAPI:
@@ -58,10 +57,7 @@ class MessengerAPI:
             async with session.post(f'{self.url}/tg/client/{user_id}/consulate', data=consulate.json()) as r:
                 if r.status == HTTPStatus.CREATED:
                     data = await r.json()
-                    capture_exception(Exception(f"new consulate created {data}"))
                     return TelegramClient(**data)
-                else:
-                    capture_exception(Exception(f"new consulate not created {r}"))
         return None
 
     async def new_client(self, client: TelegramClient) -> Optional[TelegramClient]:
