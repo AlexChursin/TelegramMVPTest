@@ -51,12 +51,12 @@ class BotService:
         await self._send_old_mes(old_messages, chat_id, cons_info.doctor_name)
 
         if client.phone:
-            client.status = State.dialog.value
             api_data = await back_api.send_confirm_cons(cons_token=cons_info.cons_token,
                                                         first_name=firstname,
                                                         middle_name=lastname,
                                                         phone=client.phone)
             if api_data['ok']:
+                client.status = State.dialog.value
                 client.consulate = await self.client_repo.new_consulate(user_id, chat_id)
                 client.consulate.reason_petition = 'web'
                 client.consulate.dialog_id = cons_info.dialog_id
