@@ -7,7 +7,7 @@ import requests
 from telegram import config
 from telegram.main_logic_bot.client_repo.client_entity import TelegramClient, Consulate
 from telegram.main_logic_bot.config.text_config import Texts, TextBot
-from sentry_sdk import capture_message, capture_event
+from sentry_sdk import capture_exception
 
 
 class MessengerAPI:
@@ -29,7 +29,6 @@ class MessengerAPI:
                     data = await r.json()
                     return Consulate(**data)
         return None
-
 
     def get_config_texts(self) -> TextBot:
         r = requests.get(f'{self.url}/text_config')
@@ -59,12 +58,11 @@ class MessengerAPI:
             async with session.post(f'{self.url}/tg/client/{user_id}/consulate', data=consulate.json()) as r:
                 if r.status == HTTPStatus.CREATED:
                     data = await r.json()
-                    capture_message(f"new consulate created {data}")
+                    capture_exception(Exception(f"new consulate created {data}"))
                     return TelegramClient(**data)
                 else:
-                    capture_message(f"new consulate not created {r}")
+                    capture_exception(Exception(f"new consulate not created {r}"))
         return None
-
 
     async def new_client(self, client: TelegramClient) -> Optional[TelegramClient]:
         async with aiohttp.ClientSession() as session:
@@ -86,10 +84,10 @@ class MessengerAPI:
                     return False
         return False
 
-
     async def get_petrovich(self, first_name, middle_name) -> Optional[str]:
         async with aiohttp.ClientSession() as session:
-            async with session.get(f'{self.url}/utils/petrovich?first_name={first_name}&middle_name={middle_name}') as r:
+            async with session.get(
+                    f'{self.url}/utils/petrovich?first_name={first_name}&middle_name={middle_name}') as r:
                 if r.status == HTTPStatus.OK:
                     data = await r.json()
                     return f"{data['first_name']} {data['middle_name']}"
