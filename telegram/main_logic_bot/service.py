@@ -173,6 +173,8 @@ class BotService:
                 if not api_data['ok']:
                     await self.view.send_assistant_message(chat_id, text=api_data['error']['text'])
                 else:
+                    client.consulate = None
+                    client.status = State.start_first.value
                     await self.view.send_assistant_message(chat_id, text=self.text_config.texts.continue_dialog.format(
                         doctor_name=client.doctor_name))
                 await self.client_repo.save_client(client)
