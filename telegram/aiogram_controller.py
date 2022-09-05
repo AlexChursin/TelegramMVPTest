@@ -99,19 +99,17 @@ async def inline(call: CallbackQuery):
 
 @dp.message_handler(content_types=['contact'])
 async def contact(message: Message):
-    # try:
-    if message.contact is not None:
-        await bot_service.answer_on_contacts(user_id=message.from_user.id,
-                                             chat_id=message.chat.id,
-                                             phone_text=message.contact.phone_number,
-                                              firstname=message.from_user.first_name,
-                                              lastname=message.from_user.last_name)
-    else:
-        pass
-
-
-# except Exception as e:
-#     capture_exception(e)
+    try:
+        if message.contact is not None:
+            await bot_service.answer_on_contacts(user_id=message.from_user.id,
+                                                 chat_id=message.chat.id,
+                                                 phone_text=message.contact.phone_number,
+                                                 firstname=message.from_user.first_name,
+                                                 lastname=message.from_user.last_name)
+        else:
+            pass
+    except Exception as e:
+        capture_exception(e)
 
 
 def start_telegram_bot():
