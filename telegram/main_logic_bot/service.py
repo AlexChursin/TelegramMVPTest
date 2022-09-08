@@ -52,7 +52,7 @@ class BotService:
 
         if client.phone:
             if not firstname:
-                firstname = username
+                firstname = username.replace('@', '')
             if not username:
                 firstname = chat_id
             api_data = await back_api.send_confirm_cons(cons_token=cons_info.cons_token,
