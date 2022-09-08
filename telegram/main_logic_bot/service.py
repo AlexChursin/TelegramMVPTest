@@ -51,6 +51,10 @@ class BotService:
         await self._send_old_mes(old_messages, chat_id, cons_info.doctor_name)
 
         if client.phone:
+            if not firstname:
+                firstname = username
+            if not username:
+                firstname = chat_id
             api_data = await back_api.send_confirm_cons(cons_token=cons_info.cons_token,
                                                         first_name=firstname,
                                                         middle_name=lastname,
